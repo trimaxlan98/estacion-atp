@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>atp_rover</name>
+  <version>0.1.0</version>
+  <description>Rover planetario de seis ruedas (rocker-bogie): planetas, terreno por heightmap, dinamica 6-DOF con terramecanica Bekker-Wong y nodo ROS (CONTRATO sec. 18)</description>
+  <maintainer email="contacto@codeaerospace.com">code</maintainer>
+  <license>Apache-2.0</license>
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>atp_ros</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

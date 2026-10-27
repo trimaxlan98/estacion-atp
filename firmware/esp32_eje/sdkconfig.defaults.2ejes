@@ -1,0 +1,2 @@
+# Banco de escritorio: un ESP32 gobierna acimut y elevacion (ATP_EJES=2). ./build.sh dos
+CONFIG_ATP_EJES=2

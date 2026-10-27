@@ -1,0 +1,7 @@
+id: render-solo-loop
+title: Render de prueba que exige kind loop
+requiere: {kind: loop}
+comando: [python3, "{root}/station/backend/tests/fixtures/render_falso.py", "{run_dir}", "{salida}", "x", "{job_id}"]
+recursos: ligero
+args: {}
+params_schema: {}

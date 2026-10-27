@@ -1,0 +1,9 @@
+# --- Variante UDP por Wi-Fi: se APILA sobre sdkconfig.defaults ---
+#   idf.py -B build_udp -DSDKCONFIG=build_udp/sdkconfig \
+#          -DSDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.udp" build
+# (build.sh udp lo hace). Cambia SOLO el transporte y la consola: sin cable
+# serie de micro-ROS, el UART0 vuelve a ser la consola y `idf.py monitor` sirve.
+CONFIG_MICRO_ROS_ESP_UART_TRANSPORT=n
+CONFIG_MICRO_ROS_ESP_NETIF_WLAN=y
+CONFIG_ESP_CONSOLE_UART_DEFAULT=y
+CONFIG_ESP_CONSOLE_UART_CUSTOM=n

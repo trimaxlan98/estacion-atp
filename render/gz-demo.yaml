@@ -1,0 +1,23 @@
+id: gz-demo
+title: Antena siguiendo a un satélite en Gazebo (1080p, marca Co.De)
+description: >
+  Qué hace: repite en Gazebo el pase de una corrida de lazo (misma elevación máxima, máscara y banda, deducidas de
+  su params.json o de su telemetría) con la montura Az/El real controlada por el PID de ros2_control, y graba un
+  video 1920×1080 con la cabecera de marca y, al pie, el error de apuntamiento MEDIDO en Gazebo (rms, p95, máx,
+  % dentro de 0.1°). Por qué importa: es la demostración visible de que el seguimiento funciona con la física del
+  simulador y no solo con el modelo del lazo. Validez: no reproduce la telemetría de la corrida, la vuelve a
+  simular con geometría esférica (perfil sintético de atp_gz), así que sus cifras no son las de la corrida de
+  origen (se rotulan como medidas en Gazebo). Dura lo que dura el pase en tiempo real (≈ 1–10 min) más el
+  arranque del render por software; use una máscara alta para un clip corto.
+requiere: {kind: loop}
+comando: [bash, scripts/render/gz-demo.sh, "{run_dir}", "{salida}", "{pantalla}"]
+estilo_args: cli
+recursos: gazebo
+ejecutor: host
+pantalla: true
+duracion_estimada_s: 360
+args: {}
+params_schema:
+  el_max: {type: number, min: 8, max: 89.9, label: "Elevación máxima del pase (°; por omisión, la de la corrida)"}
+  mask: {type: number, min: 0, max: 80, label: "Máscara de elevación (°; por omisión, la de la corrida)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda del enlace"}

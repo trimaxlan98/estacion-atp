@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>atp_optico</name>
+  <version>0.1.0</version>
+  <description>Enlace optico tierra-espacio: atmosfera (Cn2, Fried, centelleo, beam wander), presupuesto de bajada/subida con OOK/PPM, ATP de la estacion (montura de atp_ros + espejo fino FSM) en lockstep, nubes y diversidad de estaciones</description>
+  <maintainer email="contacto@codeaerospace.com">code</maintainer>
+  <license>Apache-2.0</license>
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>rosgraph_msgs</depend>
+  <depend>atp_interfaces</depend>
+  <depend>atp_ros</depend>
+  <depend>sat_isl</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

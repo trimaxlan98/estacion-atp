@@ -1,0 +1,13 @@
+id: render-host
+title: Render de prueba ejecutado por el trabajador del host (clase gazebo, con pantalla)
+requiere: {cualquiera: true}
+ejecutor: host
+comando: [python3, "{root}/station/backend/tests/fixtures/render_falso.py", "{run_dir}", "{salida}", "{pantalla}", "{job_id}"]
+estilo_args: cli
+recursos: gazebo
+pantalla: true
+duracion_estimada_s: 30
+args: {modo: ok, acelerar: 30}
+params_schema:
+  modo: {type: enum, options: [ok, falla, dormir], label: "Modo"}
+  acelerar: {type: number, min: 1, max: 120, label: "Compresion de tiempo"}

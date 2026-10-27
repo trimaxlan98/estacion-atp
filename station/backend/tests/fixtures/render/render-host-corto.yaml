@@ -1,0 +1,9 @@
+id: render-host-corto
+title: Render de prueba del host con timeout de 1 s (clase ligero, sin pantalla)
+requiere: {cualquiera: true}
+ejecutor: host
+comando: [python3, "{root}/station/backend/tests/fixtures/render_falso.py", "{run_dir}", "{salida}", "{pantalla}", "{job_id}"]
+recursos: ligero
+timeout_s: 1
+args: {}
+params_schema: {}

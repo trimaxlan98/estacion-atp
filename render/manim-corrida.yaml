@@ -1,0 +1,24 @@
+id: manim-corrida
+title: Animación de Manim de una corrida (El pase / La campana, cifras medidas)
+description: >
+  Qué hace: convierte una corrida de lazo en el video «El pase» (cielo polar con la máscara, traza de referencia y
+  antena real, panel con T+, el, az, rango, Doppler, margen y error, curva de error con la banda de 0.1° y resumen
+  final) o una campaña Monte Carlo en «La campana» (los pases caen en su barra; objetivo y p95), con la identidad
+  visual de Co.De Aerospace, vía el puente de contenido/ (exportar.py → dataset → escena → contenido/render.sh).
+  Por qué importa: divulgación y docencia con cifras que no están escritas a mano. Validez: toda cifra de resumen sale
+  literal de metrics.json o campaign.json (el registro de lo rotulado queda en cifras.json) y las cifras en vivo
+  salen de la telemetría de la corrida, decimada a 400 puntos conservando el pico de error de cada bloque. La
+  escena «program track contra autotrack» compara dos corridas y no se lanza desde aquí. Necesita la imagen
+  codeaerospace_contenido-manim y el repo codeaerospace_contenido (contenido/README.md).
+requiere: {kind: [loop, campaign]}
+comando: [bash, scripts/render/manim-corrida.sh, "{run_dir}", "{salida}"]
+estilo_args: cli
+recursos: manim
+ejecutor: host
+pantalla: false
+duracion_estimada_s: 240
+args: {escena: auto, calidad: m}
+params_schema:
+  escena: {type: enum, options: [auto, pase, campana], labels: {auto: "según la corrida"}, label: "Escena"}
+  calidad: {type: enum, options: [l, m, h], labels: {l: "480p15 (rápida)", m: "720p30", h: "1080p60 (lenta)"}, label: "Calidad"}
+  play_s: {type: number, min: 5, max: 90, label: "Duración de la animación (s; por omisión la de la escena)"}

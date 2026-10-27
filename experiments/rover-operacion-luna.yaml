@@ -1,0 +1,42 @@
+id: rover-operacion-luna
+title: Operación del rover en la Luna con retardo de 2.6 s y retardo variable
+level: R8
+kind: proceso
+description: >
+  Qué se mide: cuánto avanza un rover lunar en un día de operación de 24 h con 2 h de conducción, según cómo lo opere la Tierra:
+  (a) teleoperación mover y esperar, (b) metas por pase, (c) plan de sol con alarmas locales o (d) operador con gemelo digital,
+  con retardo de una vía constante (por defecto 1.28 s, es decir 2.6 s de ida y vuelta, y editable para ver dónde la teleoperación
+  deja de ser viable). Se reporta la distancia útil, el tiempo ocioso, comandos perdidos o caducados, atascos, vuelcos, energía y
+  el tiempo de reacción a un peligro.
+  Qué se espera: con 2.6 s la teleoperación mover y esperar rinde del orden de tres cuartos de la autonomía; con cientos de
+  segundos de retardo cae a casi nada. Limitación: rover sustituto cinemático calibrado con R1, peligros por regla, sin
+  libración ni relé lunar real; nada validado contra un rover real.
+area: rf
+comando: [python3, scripts/operacion_rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+recursos: ligero
+timeout_s: 600
+args:
+  planeta: luna
+  terreno: rocoso
+  modo: teleop
+  semilla: 0
+  n_soles: 3
+  conduccion_h: 2.0
+  enlace: retardo
+  owl_s: 1.28
+  bache_por_km: 2.0
+  p_perdida_cmd: 0.02
+  p_perdida_estado: 0.02
+params_schema:
+  terreno: {type: enum, options: [llano, rocoso, dunas, rocas, pendiente], label: "Terreno (campo de pendientes de R1)"}
+  modo: {type: enum, options: [teleop, metas, plan_sol, gemelo], label: "Modo de operación (a, b, c, d)"}
+  semilla: {type: integer, min: 0, max: 99, label: "Semilla (terreno, peligros, pérdidas)"}
+  n_soles: {type: integer, min: 1, max: 5, label: "Días de operación simulados"}
+  conduccion_h: {type: number, min: 0.5, max: 8, label: "Horas de conducción por día"}
+  owl_s: {type: number, min: 0, max: 1500, label: "Retardo de luz de una vía (s)"}
+  bache_por_km: {type: number, min: 0, max: 20, label: "Zonas blandas ocultas por km"}
+  p_perdida_cmd: {type: number, min: 0, max: 0.9, label: "Probabilidad de perder un comando"}
+  p_perdida_estado: {type: number, min: 0, max: 0.9, label: "Probabilidad de perder una telemetría"}

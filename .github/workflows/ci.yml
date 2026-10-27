@@ -1,0 +1,159 @@
+name: CI
+
+# Estacion ATP: imagen ROS 2 Jazzy, colcon, pruebas (atp_ros, atp_hw, backend), frontend,
+# integracion con ROS real y E2E navegador <-> backend. Ver docs/CALIDAD.md.
+on:
+  push:
+    branches: [main]   # las ramas de trabajo no gastan minutos hasta que se abre un PR
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ros2-jazzy-dev
+
+jobs:
+  # ------------------------------------------------------------------ frontend
+  frontend:
+    name: Frontend (npm ci + build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: station/frontend/package-lock.json
+      - name: npm ci
+        working-directory: station/frontend
+        run: npm ci
+      - name: npm run build
+        working-directory: station/frontend
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: station/frontend/dist
+          retention-days: 7
+
+  # ------------------------------------------------------------------ imagen
+  # Construye docker/Dockerfile (osrf/ros:jazzy-desktop + dependencias) y guarda las
+  # capas en la cache de Actions; los demas jobs la reutilizan sin reconstruir.
+  imagen:
+    name: Imagen Docker (con cache de capas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liberar disco (la imagen ocupa ~6 GB)
+        run: |
+          id
+          test "$(id -u)" = 1001   # el Dockerfile se construye con UID=1001 (usuario del runner)
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+      - uses: docker/setup-buildx-action@v3
+      - name: Construir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          # el contenedor corre como `dev` con el UID del runner: los volumenes montados
+          # (build/ install/ log/ runs/) quedan escribibles
+          build-args: |
+            UID=1001
+            GID=1001
+          tags: ros2-jazzy-dev
+          load: true
+          cache-from: type=gha,scope=ros-image
+          cache-to: type=gha,mode=max,scope=ros-image
+      - name: Comprobar la imagen
+        run: docker run --rm ros2-jazzy-dev bash -c 'source /opt/ros/jazzy/setup.bash && echo ROS_DISTRO=$ROS_DISTRO && python3 -c "import fastapi, sgp4, numpy; print(\"deps ok\")"'
+
+  # ------------------------------------------------------------------ pruebas
+  pruebas:
+    name: colcon + pytest + validar (subconjunto)
+    needs: imagen
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liberar disco
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - uses: docker/setup-buildx-action@v3
+      - name: Imagen (desde cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          build-args: |
+            UID=1001
+            GID=1001
+          tags: ros2-jazzy-dev
+          load: true
+          cache-from: type=gha,scope=ros-image
+      - name: colcon build
+        run: scripts/ci_ros.sh 'colcon build 2>&1 | tail -15'
+      - name: pytest atp_ros
+        run: scripts/ci_ros.sh 'python3 -m pytest -q src/atp_ros/test'
+      - name: pytest atp_hw
+        run: scripts/ci_ros.sh 'python3 -m pytest -q src/atp_hw/test'
+      - name: pytest atp_dron (dinamica, ESKF/NEES, propiedades, determinismo; sin ROS, ~2 min)
+        run: scripts/ci_ros.sh 'python3 -m pytest -q src/atp_dron/test'
+      - name: pytest sat_adcs (formato del grabador, sin lanzar ROS; la suite completa tarda ~6 min y no corre en CI)
+        run: scripts/ci_ros.sh 'python3 -m pytest -q src/sat_adcs/test/test_grabador.py'
+      - name: pytest backend (sin lanzar ROS)
+        run: scripts/ci_ros.sh 'cd station/backend && python3 -m pytest -q -m "not integration"'
+      - name: validar.sh test n2 det_lazo (escalera rapida + determinismo del lazo)
+        run: |
+          scripts/ci_ros.sh 'bash scripts/validar.sh test n2 det_lazo' | tee validar.log
+          # validar.sh no devuelve error: se comprueba su salida
+          if grep -E 'Traceback|NO DETERMINISTA|failed' validar.log; then exit 1; fi
+          grep -q 'RESULTADO' validar.log
+          test "$(grep -c '^DETERMINISTA' validar.log)" -eq 1
+      # Determinismo del autotrack N5 (corregido con el saludo de arranque, CONTRATO 8):
+      # telemetria y metricas identicas byte a byte tambien en 2 vCPU.
+      - name: validar.sh det_n5 (determinismo del autotrack)
+        run: |
+          scripts/ci_ros.sh 'bash scripts/validar.sh det_n5' | tee validar_n5.log
+          grep -q '^DETERMINISTA' validar_n5.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validar-log
+          path: validar*.log
+          if-no-files-found: ignore
+
+  # ------------------------------------------------------------------ integracion
+  integracion:
+    name: Integracion backend con ROS real
+    needs: imagen
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Liberar disco
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+      - uses: docker/setup-buildx-action@v3
+      - name: Imagen (desde cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker
+          build-args: |
+            UID=1001
+            GID=1001
+          tags: ros2-jazzy-dev
+          load: true
+          cache-from: type=gha,scope=ros-image
+      - name: colcon build
+        run: scripts/ci_ros.sh 'colcon build 2>&1 | tail -15'
+      # test_n2_real fallo UNA vez en CI (3 runs): el grabador no registro los primeros 15.85 s del
+      # pase (telemetry.jsonl empezaba en t=15.85, no en 0). No se reproduce en local ni con 2 CPU
+      # y carga. Se reintenta una vez solo lo que fallo, con un aviso visible (docs/CALIDAD.md).
+      - name: pytest backend -m integration (ros2 launch de verdad)
+        run: |
+          if ! scripts/ci_ros.sh 'cd station/backend && python3 -m pytest -q -m integration'; then
+            echo "::warning::prueba de integracion inestable: se reintenta una vez solo la que fallo (docs/CALIDAD.md, hallazgo 5)"
+            scripts/ci_ros.sh 'cd station/backend && python3 -m pytest -q -m integration --lf'
+          fi

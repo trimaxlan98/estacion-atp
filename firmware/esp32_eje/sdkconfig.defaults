@@ -1,0 +1,43 @@
+# --- Variante por defecto: micro-ROS por SERIE (UART0 = el puente USB de la placa) ---
+CONFIG_IDF_TARGET="esp32"
+
+# Reloj y planificador: 240 MHz (hoja de datos del ESP32) y tick de 1 ms,
+# que es el periodo del lazo (vTaskDelayUntil(1)).
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# micro-ROS: XRCE-DDS con transporte PERSONALIZADO (serie o UDP elegido en
+# tiempo de ejecucion por la variante de este archivo).
+CONFIG_MICRO_ROS_ESP_XRCE_DDS_MIDDLEWARE=y
+CONFIG_MICRO_ROS_ESP_UART_TRANSPORT=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=4096
+
+# El UART0 lo ocupa micro-ROS: la consola (logs) pasa al UART1, solo TX en el
+# GPIO17 (ver README, "Pines"). Los mensajes del arranque de la ROM seguiran
+# saliendo por UART0 a 115200 un instante; el agente los ignora (trama HDLC).
+CONFIG_ESP_CONSOLE_UART_CUSTOM=y
+CONFIG_ESP_CONSOLE_UART_CUSTOM_NUM_1=y
+CONFIG_ESP_CONSOLE_UART_TX_GPIO=17
+CONFIG_ESP_CONSOLE_UART_RX_GPIO=16
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+
+# Vigilancia: el watchdog de tareas reinicia el chip si el lazo se cuelga; los
+# pines de habilitacion del driver tienen pull-down externo (README, "Cableado").
+CONFIG_ESP_TASK_WDT_EN=y
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=2
+CONFIG_ESP_TASK_WDT_PANIC=y
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=n
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+CONFIG_ESP_SYSTEM_PANIC_PRINT_REBOOT=y
+
+# GPIO y LEDC en IRAM: la parada de emergencia no debe depender de la cache de
+# la flash (una escritura de NVS/Wi-Fi la deshabilita unos ms).
+CONFIG_GPIO_CTRL_FUNC_IN_IRAM=y
+CONFIG_LEDC_CTRL_FUNC_IN_IRAM=y
+
+# Tabla de particiones de una sola aplicacion GRANDE (1.5 MB, sin OTA): la
+# variante Wi-Fi no cabe en el 1 MB por defecto. La flash del modulo tipico es de 4 MB.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y

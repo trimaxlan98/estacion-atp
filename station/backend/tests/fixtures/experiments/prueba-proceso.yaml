@@ -1,0 +1,24 @@
+id: prueba-proceso
+title: Proceso de prueba (red falsa, sin ROS)
+level: T1
+kind: proceso
+area: red
+description: >
+  Escena de prueba de `kind: proceso`: ejecuta un script que escribe una corrida con el
+  contrato `red` y `metricas.json`. Sirve para probar el constructor del comando, el gobernador,
+  el fin por `hecho_cuando`, las metricas y los artefactos sin ROS. Validez: ninguna fisica.
+comando: [python3, "{root}/station/backend/tests/fixtures/proceso_falso.py", --salida, "{runs_dir}", --id, "{run_id}"]
+estilo_args: cli
+hecho_cuando: metricas.json
+metricas: metricas.json
+artefactos:
+  - {ruta: red.jsonl, contrato: red}
+  - {ruta: eventos.jsonl, contrato: red_eventos}
+recursos: pesado
+timeout_s: 60
+args: {n_sats: 3, dur_s: 10, modo: ok, nombre: ""}
+params_schema:
+  n_sats: {type: integer, min: 1, max: 72, label: "Satelites"}
+  dur_s: {type: number, min: 2, max: 3600, label: "Duracion (s)"}
+  modo: {type: enum, options: [ok, falla, sinhecho, dormir], label: "Modo del proceso falso"}
+  nombre: {type: enum, options: ["", "-guion"], labels: {"": "ninguno"}, label: "Nombre"}

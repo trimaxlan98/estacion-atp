@@ -1,0 +1,368 @@
+menu "Estacion ATP - eje de la montura"
+
+    config ATP_EJES
+        int "Ejes que gobierna este ESP32 (1 o 2)"
+        default 1
+        range 1 2
+        help
+            1 (por defecto): un eje, el que diga "Eje que gobierna este ESP32"; el
+            firmware es el de siempre.
+            2: banco de escritorio. Un solo ESP32 gobierna acimut (az, eje 0) y
+            elevacion (el, eje 1): dos encoders PCNT, dos puentes H y UN paro comun.
+            Los pines del segundo eje estan en "Segundo eje". Con 2 ejes el
+            encoder SPI no esta soportado y los nombres son siempre az y el.
+            La interfaz ROS es la misma (/atp/mcu/az/... y /atp/mcu/el/...).
+
+    choice ATP_EJE
+        prompt "Eje que gobierna este ESP32"
+        default ATP_EJE_AZ
+        help
+            Un ESP32 gobierna UN eje. Decide a que elemento de /atp/reference
+            ({az, el}) obedece y el espacio de nombres de sus topicos.
+
+        config ATP_EJE_AZ
+            bool "Acimut (az, indice 0)"
+        config ATP_EJE_EL
+            bool "Elevacion (el, indice 1)"
+    endchoice
+
+    config ATP_EJE_INDICE
+        int
+        default 0 if ATP_EJE_AZ
+        default 1 if ATP_EJE_EL
+
+    config ATP_EJE_NOMBRE
+        string
+        default "az" if ATP_EJE_AZ
+        default "el" if ATP_EJE_EL
+
+    config ATP_ROS_DOMAIN_ID
+        int "ROS_DOMAIN_ID del agente y de la Estacion"
+        default 42
+        range 0 232
+        help
+            Debe coincidir con el ROS_DOMAIN_ID del lado PC (docker-compose.yml
+            usa 42; cada corrida de la Estacion usa uno propio de 100 a 199).
+            micro-ROS lo manda al agente al abrir la sesion.
+
+    config ATP_AUTOARMAR
+        bool "Armar al arrancar (sin esperar /atp/mcu/<eje>/cmd/enable)"
+        default n
+        help
+            Por defecto el motor NO se habilita hasta recibir "true" en
+            cmd/enable. Dejarlo en "n" para el primer encendido real.
+
+    config ATP_MODO_SIMULADO
+        bool "Planta simulada en el firmware (sin encoder ni motor)"
+        default n
+        help
+            El lazo corre contra la planta J/b de atp_ros (core/eje_planta.c)
+            en vez de leer el encoder y mover el PWM. Es el "hardware en el
+            lazo sin potencia" de src/atp_hw/README.md (punto 7): prueba
+            micro-ROS, tiempos y protecciones sin conectar el motor.
+
+    menu "Encoder"
+        choice ATP_ENCODER
+            prompt "Tipo de encoder"
+            default ATP_ENC_PCNT
+
+            config ATP_ENC_PCNT
+                bool "Incremental en cuadratura (periferico PCNT)"
+            config ATP_ENC_SPI
+                bool "Absoluto SPI de 14 bits (AS5048A) - SIN PROBAR en hardware"
+                depends on ATP_EJES = 1
+        endchoice
+
+        config ATP_ENC_CPR
+            int "Cuentas por vuelta de la CARGA"
+            default 40000 if ATP_ENC_PCNT
+            default 16384 if ATP_ENC_SPI
+            range 1 100000000
+            help
+                Incremental: PPR x 4 (cuadratura) x reduccion hasta la carga.
+                El valor por defecto (1000 PPR x 4 x 10:1) es un SUPUESTO:
+                poner el de la montura real.
+
+        config ATP_ENC_INVERTIR
+            bool "Invertir el sentido del encoder"
+            default n
+
+        config ATP_ENC_A_GPIO
+            int "GPIO canal A (PCNT)"
+            default 32
+            depends on ATP_ENC_PCNT
+        config ATP_ENC_B_GPIO
+            int "GPIO canal B (PCNT)"
+            default 33
+            depends on ATP_ENC_PCNT
+        config ATP_ENC_FILTRO_NS
+            int "Filtro de glitch del PCNT (ns)"
+            default 1000
+            range 0 12700
+            depends on ATP_ENC_PCNT
+            help
+                Descarta pulsos mas cortos que esto. El maximo del filtro es
+                1023 ciclos de APB (80 MHz) = 12.7 us.
+
+        config ATP_SPI_SCLK_GPIO
+            int "SPI SCLK"
+            default 14
+            depends on ATP_ENC_SPI
+        config ATP_SPI_MOSI_GPIO
+            int "SPI MOSI"
+            default 13
+            depends on ATP_ENC_SPI
+        config ATP_SPI_MISO_GPIO
+            int "SPI MISO"
+            default 26
+            depends on ATP_ENC_SPI
+        config ATP_SPI_CS_GPIO
+            int "SPI CS"
+            default 23
+            depends on ATP_ENC_SPI
+        config ATP_SPI_KHZ
+            int "Reloj SPI (kHz)"
+            default 1000
+            range 100 10000
+            depends on ATP_ENC_SPI
+    endmenu
+
+    menu "Motor y driver"
+        choice ATP_DRIVER
+            prompt "Tipo de puente H"
+            default ATP_DRV_BTS7960
+
+            config ATP_DRV_BTS7960
+                bool "BTS7960: RPWM + LPWM + EN"
+            config ATP_DRV_PWMDIR
+                bool "PWM + DIR + EN (drivers tipo Cytron MD10C, VNH5019)"
+        endchoice
+
+        config ATP_PWM_A_GPIO
+            int "GPIO PWM (BTS7960: RPWM)"
+            default 18
+        config ATP_PWM_B_GPIO
+            int "GPIO LPWM (BTS7960) o DIR (PWM+DIR)"
+            default 19
+        config ATP_EN_GPIO
+            int "GPIO de habilitacion (R_EN y L_EN juntos, o EN)"
+            default 21
+            help
+                Con pull-down EXTERNO de 10 k: durante el arranque y tras un
+                reinicio del chip el puente queda apagado.
+        config ATP_PWM_HZ
+            int "Frecuencia del PWM (Hz)"
+            default 20000
+            range 1000 40000
+            help
+                20 kHz queda sobre el rango audible. La hoja del BTS7960
+                admite hasta 25 kHz (de memoria; verificar con Infineon).
+        config ATP_MOTOR_INVERTIR
+            bool "Invertir el sentido del motor"
+            default n
+        config ATP_U_PLENO_MNM
+            int "Par al 100 % de PWM (mN m, en el eje de carga)"
+            default 8000
+            help
+                Calibracion. 8000 mN m = u_max de mount_sim.py; SUPUESTO.
+        config ATP_DUTY_MAX_PCT
+            int "Tope de PWM (%)"
+            default 95
+            range 1 100
+            help
+                El BTS7960 recarga su bootstrap en los apagados del PWM: no
+                se le pide 100 % continuo.
+        config ATP_DUTY_MIN_PCT
+            int "Zona muerta compensada (%)"
+            default 0
+            range 0 50
+    endmenu
+
+    menu "Parada de emergencia"
+        config ATP_ESTOP_GPIO
+            int "GPIO de la parada de emergencia"
+            default 27
+            help
+                Contacto NORMALMENTE CERRADO a masa, con pull-up. Abierto =
+                parada: tambien si se corta el cable.
+        config ATP_ESTOP_INVERTIDO
+            bool "Contacto normalmente ABIERTO (cerrado = parada)"
+            default n
+            help
+                NO recomendado: un cable cortado no pararia el motor.
+    endmenu
+
+    menu "Sensor de corriente (opcional)"
+        config ATP_CORR_ADC
+            bool "Leer R_IS / L_IS del BTS7960 con el ADC1"
+            default n
+        config ATP_CORR_R_GPIO
+            int "GPIO ADC1 de R_IS"
+            default 34
+            depends on ATP_CORR_ADC
+        config ATP_CORR_L_GPIO
+            int "GPIO ADC1 de L_IS"
+            default 35
+            depends on ATP_CORR_ADC
+        config ATP_CORR_MA_POR_V
+            int "mA de carga por volt en R_IS/L_IS"
+            default 8500
+            depends on ATP_CORR_ADC
+            help
+                kILIS / R_IS = 8500 / 1 kohm = 8.5 A/V con la resistencia del
+                modulo tipico. Valores DE MEMORIA de la hoja del BTS7960:
+                verificar y calibrar con una carga conocida.
+        config ATP_CORR_MAX_MA
+            int "Sobrecorriente que enclava falla (mA)"
+            default 20000
+            depends on ATP_CORR_ADC
+    endmenu
+
+    menu "Lazo de control"
+        config ATP_KP_MILLI
+            int "kp (N m/rad x 1000)"
+            default 25000
+        config ATP_KI_MILLI
+            int "ki (N m/(rad s) x 1000)"
+            default 2000
+        config ATP_KD_MILLI
+            int "kd (N m s/rad x 1000)"
+            default 8000
+        config ATP_TAU_D_MS
+            int "Filtro de la derivada (ms)"
+            default 80
+        config ATP_KFF_V_MILLI
+            int "Pre-alimentacion de velocidad (N m s/rad x 1000)"
+            default 0
+        config ATP_U_MAX_MNM
+            int "Tope de par del lazo (mN m)"
+            default 8000
+        config ATP_VEL_MAX_CDEG_S
+            int "Velocidad maxima de la referencia (centigrados/s)"
+            default 1200
+            help
+                12 deg/s: por encima de los 9 deg/s del pase cenital N2. SUPUESTO.
+        config ATP_ACC_LIMITE_CDEG_S2
+            int "Frenado al acercarse a un limite (centigrados/s^2)"
+            default 573
+            help
+                0.1 rad/s^2: el sobrepaso del lazo es ~ J a/kp = 0.46 deg.
+        config ATP_LIM_MIN_CDEG
+            int "Limite de software inferior (centigrados)"
+            default -500 if ATP_EJE_AZ || ATP_EJES = 2
+            default 0 if ATP_EJE_EL
+        config ATP_LIM_MAX_CDEG
+            int "Limite de software superior (centigrados)"
+            default 36500 if ATP_EJE_AZ || ATP_EJES = 2
+            default 9000 if ATP_EJE_EL
+        config ATP_LIM_MARGEN_CDEG
+            int "Margen de falla fuera de los limites (centigrados)"
+            default 200
+        config ATP_WATCHDOG_MS
+            int "Watchdog de referencia (ms)"
+            default 500
+            help
+                src/atp_hw/README.md, punto 4 del plan de micro-ROS.
+        config ATP_RETENCION_MS
+            int "Tiempo manteniendo posicion tras perder la referencia (ms)"
+            default 2000
+            help
+                0 = apaga el driver en cuanto vence el watchdog.
+        config ATP_VEL_FALLA_CDEG_S
+            int "Velocidad medida que enclava falla (centigrados/s)"
+            default 3000
+    endmenu
+
+    menu "Telemetria"
+        config ATP_TEL_HZ
+            int "Frecuencia de /atp/mcu/<eje>/joint_states (Hz)"
+            default 50
+            range 1 200
+        config ATP_DIAG_HZ
+            int "Frecuencia de /atp/mcu/<eje>/diag (Hz)"
+            default 2
+            range 1 20
+    endmenu
+
+    menu "micro-ROS (tarea y transporte)"
+        config ATP_UROS_STACK
+            int "Pila de la tarea micro-ROS (bytes)"
+            default 12288
+        config ATP_UROS_PRIO
+            int "Prioridad de la tarea micro-ROS"
+            default 5
+            range 1 10
+            help
+                MENOR que la del lazo (configMAX_PRIORITIES - 2 = 23).
+        config ATP_UART_BAUD
+            int "Baudios del transporte serie"
+            default 921600
+            depends on MICRO_ROS_ESP_UART_TRANSPORT
+            help
+                El agente debe usar el mismo valor (-b). CH340 hasta 2 Mbit/s,
+                CP2102 hasta 1 Mbit/s: si el puente de la placa no llega, bajar.
+        config ATP_UART_NUM
+            int "Numero de UART del transporte serie"
+            default 0
+            depends on MICRO_ROS_ESP_UART_TRANSPORT
+    endmenu
+
+    menu "Segundo eje (elevacion; solo con ATP_EJES=2)"
+        depends on ATP_EJES = 2
+
+        config ATP_EJE2_ENC_A_GPIO
+            int "GPIO canal A del encoder (PCNT)"
+            default 25
+        config ATP_EJE2_ENC_B_GPIO
+            int "GPIO canal B del encoder (PCNT)"
+            default 26
+        config ATP_EJE2_PWM_A_GPIO
+            int "GPIO PWM (BTS7960: RPWM)"
+            default 22
+        config ATP_EJE2_PWM_B_GPIO
+            int "GPIO LPWM (BTS7960) o DIR (PWM+DIR)"
+            default 23
+        config ATP_EJE2_EN_GPIO
+            int "GPIO de habilitacion (con pull-down EXTERNO de 10 k)"
+            default 4
+            help
+                GPIO4 no es de arranque (strapping) ni de flash. Verificar el estado
+                de reinicio del pin contra la hoja de datos de Espressif; el
+                pull-down externo es obligatorio de todos modos.
+        config ATP_EJE2_ENC_CPR
+            int "Cuentas por vuelta de la CARGA"
+            default 40000
+            range 1 100000000
+        config ATP_EJE2_ENC_INVERTIR
+            bool "Invertir el sentido del encoder"
+            default n
+        config ATP_EJE2_MOTOR_INVERTIR
+            bool "Invertir el sentido del motor"
+            default n
+        config ATP_EJE2_U_PLENO_MNM
+            int "Par al 100 % de PWM (mN m, en el eje de carga)"
+            default 8000
+        config ATP_EJE2_LIM_MIN_CDEG
+            int "Limite de software inferior (centigrados)"
+            default 0
+        config ATP_EJE2_LIM_MAX_CDEG
+            int "Limite de software superior (centigrados)"
+            default 9000
+        config ATP_EJE2_CORR_R_GPIO
+            int "GPIO ADC1 de R_IS (solo-entrada)"
+            default 36
+            depends on ATP_CORR_ADC
+        config ATP_EJE2_CORR_L_GPIO
+            int "GPIO ADC1 de L_IS (solo-entrada)"
+            default 39
+            depends on ATP_CORR_ADC
+    endmenu
+
+    config ATP_ECO_LATENCIA
+        bool "Publicar /atp/mcu/eco (medida de latencia del enlace)"
+        default n
+        help
+            Un publicador extra que devuelve el sello de cada /atp/reference. Solo
+            para el banco HIL; apagado, el firmware es el de siempre.
+
+endmenu

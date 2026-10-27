@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(atp_description)
+find_package(ament_cmake REQUIRED)
+install(DIRECTORY urdf meshes worlds DESTINATION share/${PROJECT_NAME})
+install(PROGRAMS scripts/gen_meshes.py DESTINATION lib/${PROJECT_NAME})
+ament_package()

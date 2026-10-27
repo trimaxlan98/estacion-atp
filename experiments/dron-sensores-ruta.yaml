@@ -1,0 +1,34 @@
+id: dron-sensores-ruta
+title: Cuadrirrotor volando con sensores ruidosos y estimador
+level: D3
+kind: proceso
+description: >
+  Qué se mide: la ruta de tres metas con viento y ráfagas, pero el control lee la estimación de un filtro de Kalman de error de
+  estado de 15 estados alimentado por IMU, GPS (5 Hz), barómetro y magnetómetro con ruido y sesgos. Se miden el error de
+  estimación de posición, velocidad y actitud, y cuánto empeora el seguimiento respecto al control con la verdad.
+  Qué se espera: error de posición bajo 0.5 m (el GPS crudo tiene 0.8 a 1.5 m) y actitud bajo 2 grados, llegando a las metas.
+  Limitación: ruidos y sesgos son supuestos de módulos de bajo costo; sin retardo del GPS ni multitrayectoria.
+area: plataforma
+comando: [python3, scripts/dron.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: ligero
+timeout_s: 600
+args:
+  cuerpo: tierra
+  semilla: 5
+  ruta: [[30, 0, 10], [30, 30, 10], [0, 0, 10]]
+  duracion_s: 90
+  viento: [2.0, 0.0, 0.0]
+  rafaga_sigma: 1.0
+  v_max: 5.0
+  sensores: true
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  semilla: {type: number, min: 0, max: 100000, label: "Semilla (ráfagas y sensores)"}
+  rafaga_sigma: {type: number, min: 0, max: 5, label: "Ráfagas, σ (m/s)"}
+  v_max: {type: number, min: 1, max: 12, label: "Velocidad máxima (m/s)"}

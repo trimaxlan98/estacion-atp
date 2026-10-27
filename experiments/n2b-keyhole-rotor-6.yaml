@@ -1,0 +1,31 @@
+id: n2b-keyhole-rotor-6
+title: Keyhole con rotor limitado a 6 °/s
+level: N2
+kind: loop
+description: >
+  Qué se mide: el mismo pase casi cenital de n2-keyhole-cenital (culmina a
+  85°, máscara 70°) pero con el tope de velocidad del rotor en 6 °/s, un valor
+  típico de rotor de aficionado o de laboratorio. Es la contraparte
+  "pierde al satélite" de ese experimento.
+  Qué se espera: a 550 km el pase exige unos 9 °/s de acimut en la
+  culminación, más de lo que el rotor puede dar (el límite teórico a 6 °/s
+  es una culminación de ~82.5°). Se espera que el error de acimut crezca
+  mientras el rotor satura su velocidad y que el apuntamiento real se salga
+  de la banda de 0.1° durante varios segundos, con veredicto NO CUMPLE.
+  Por qué importa: muestra con una corrida concreta qué significa el
+  keyhole: no es un error del controlador (ningún controlador lo arregla),
+  es un límite del actuador. La decisión de ingeniería es rechazar esos
+  pases en el planificador o comprar un rotor más rápido.
+launch: atp_loop.launch.py
+args:
+  el_max: 85
+  mask: 70
+  vel_max: 6
+  time_scale: 0
+  band: S
+params_schema:
+  el_max: {type: number, min: 75, max: 89.9, label: "Elevación máxima del pase (°)"}
+  mask: {type: number, min: 50, max: 74, label: "Máscara de elevación (°)"}
+  vel_max: {type: number, min: 1, max: 30, label: "Tope de velocidad del rotor (°/s)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

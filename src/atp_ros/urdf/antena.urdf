@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- Montura Az/El con plato de 3 m (estacion tipo OrbitEye del curso 30).
+     Los joints 'az' y 'el' se mueven con /joint_states de mount_sim. -->
+<robot name="antena_atp">
+  <material name="cian"><color rgba="0.13 0.83 0.93 1"/></material>
+  <material name="gris"><color rgba="0.35 0.40 0.45 1"/></material>
+
+  <link name="base_link">
+    <visual><origin xyz="0 0 0.5"/><geometry><cylinder radius="0.4" length="1.0"/></geometry>
+      <material name="gris"/></visual>
+  </link>
+
+  <link name="az_link">
+    <visual><origin xyz="0 0 0.15"/><geometry><box size="0.8 1.6 0.3"/></geometry>
+      <material name="gris"/></visual>
+  </link>
+  <joint name="az" type="continuous">
+    <parent link="base_link"/><child link="az_link"/>
+    <origin xyz="0 0 1.0"/><axis xyz="0 0 1"/>
+  </joint>
+
+  <link name="el_link">
+    <!-- el plato apunta a +X cuando el=0; el eje de elevacion es Y -->
+    <visual><origin xyz="0.25 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="1.5" length="0.12"/></geometry>
+      <material name="cian"/></visual>
+    <visual><origin xyz="0.9 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.05" length="1.3"/></geometry>
+      <material name="gris"/></visual>
+  </link>
+  <joint name="el" type="revolute">
+    <parent link="az_link"/><child link="el_link"/>
+    <origin xyz="0 0 0.9"/><axis xyz="0 -1 0"/>
+    <limit lower="0" upper="3.14159" effort="100" velocity="3.0"/>
+  </joint>
+
+  <!-- punto de apuntamiento: 1 m delante del plato, para ver la linea de vista -->
+  <link name="boresight"/>
+  <joint name="boresight_joint" type="fixed">
+    <parent link="el_link"/><child link="boresight"/><origin xyz="1.55 0 0"/>
+  </joint>
+</robot>

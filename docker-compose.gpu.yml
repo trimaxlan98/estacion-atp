@@ -1,0 +1,17 @@
+# GPU NVIDIA para el servicio `gz` en Linux nativo (NVIDIA Container Toolkit). SIN PROBAR: la validacion de la tarea C
+# se hizo en WSL2 (docker-compose.gpu-wsl.yml). Con Xephyr como pantalla, GLX del driver NVIDIA puede no estar
+# disponible (Xephyr no carga la extension GLX de NVIDIA); scripts/gz_gpu.sh comprueba el renderer y aborta si es
+# por software. Lo usa scripts/gz_gpu.sh con GPU=1 cuando no hay /dev/dxg:
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml run gz ...
+services:
+  gz:
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, graphics, display, utility]

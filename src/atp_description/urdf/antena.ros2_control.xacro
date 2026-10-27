@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!-- Etiqueta <ros2_control> de la montura. Aqui (y solo aqui) se elige el hardware:
+
+   hw:=sim     AtpMountSystem con el backend `sim` (la dinamica de planta.py en read())
+   hw:=serial  AtpMountSystem con el backend `serial` (microcontrolador real o puerto falso)
+   hw:=gz      gz_ros2_control/GazeboSimSystem (Gazebo Harmonic)
+   hw:=mock    mock_components/GenericSystem
+
+Interfaces (identicas en todos): comando de esfuerzo (N m) y de posicion (rad);
+estado de posicion (rad), velocidad (rad/s) y esfuerzo aplicado (N m). Con
+`effort` los controladores cierran el lazo (AtpTrackingController); con
+`position` el hardware cierra un servo interno (joint_trajectory_controller).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="atp_junta" params="nombre inicial">
+    <joint name="${nombre}">
+      <command_interface name="effort">
+        <param name="min">-$(arg u_max)</param>
+        <param name="max">$(arg u_max)</param>
+      </command_interface>
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">${inicial}</param></state_interface>
+      <state_interface name="velocity"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="effort"><param name="initial_value">0.0</param></state_interface>
+    </joint>
+  </xacro:macro>
+
+  <xacro:macro name="atp_ros2_control" params="hw">
+    <ros2_control name="AtpMount" type="system">
+      <hardware>
+        <xacro:if value="${hw in ('sim', 'serial')}">
+          <plugin>atp_control/AtpMountSystem</plugin>
+          <param name="backend">${hw}</param>
+          <param name="J">$(arg J)</param>
+          <param name="b">$(arg b)</param>
+          <param name="vel_max_deg_s">$(arg vel_max_deg_s)</param>
+          <param name="substep_s">0.002</param>
+          <param name="coulomb_nm">$(arg coulomb_nm)</param>
+          <param name="stribeck_nm">$(arg stribeck_nm)</param>
+          <param name="stribeck_vel_deg_s">0.5</param>
+          <param name="friction_veps_deg_s">0.0573</param>
+          <param name="backlash_deg">$(arg backlash_deg)</param>
+          <param name="backlash_motor_frac">0.5</param>
+          <param name="backlash_restitution">0.0</param>
+          <param name="unbalance_nm">$(arg unbalance_nm)</param>
+          <param name="encoder_bits">$(arg encoder_bits)</param>
+          <param name="servo_kp">100.0</param>
+          <param name="servo_kd">20.0</param>
+          <!-- backend serial: puerto ("fake" = microcontrolador simulado en proceso) -->
+          <param name="serial_port">$(arg serial_port)</param>
+          <param name="serial_baud">$(arg serial_baud)</param>
+          <param name="serial_cpr">65536</param>
+          <param name="serial_timeout_ms">250</param>
+        </xacro:if>
+        <xacro:if value="${hw == 'gz'}">
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </xacro:if>
+        <xacro:if value="${hw == 'mock'}">
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="calculate_dynamics">true</param>
+        </xacro:if>
+      </hardware>
+      <xacro:atp_junta nombre="az" inicial="$(arg az0)"/>
+      <xacro:atp_junta nombre="el" inicial="$(arg el0)"/>
+    </ros2_control>
+
+    <xacro:if value="${hw == 'gz'}">
+      <gazebo>
+        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+          <parameters>$(arg controllers_file)</parameters>
+          <ros><namespace></namespace></ros>
+        </plugin>
+      </gazebo>
+    </xacro:if>
+  </xacro:macro>
+</robot>

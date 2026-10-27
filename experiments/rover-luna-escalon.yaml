@@ -1,0 +1,31 @@
+id: rover-luna-escalon
+title: Rover rocker-bogie sube un escalón en la Luna
+level: R6
+kind: proceso
+description: >
+  Qué se mide: el rover con suspensión rocker-bogie sube en simulación un escalón de 0.18 m (la rueda mide 0.25 m de
+  radio) con la gravedad de la Luna, con contacto por envolvente de la rueda. Se miden si lo supera, el tiempo y el
+  cabeceo. Qué se espera: lo supera (en el barrido de R6 la Luna supera 0.20 m y no 0.25 m con 0.5 m/s mandado).
+  Limitación: suelo lunar sin parámetros medidos; contacto por perfil del disco sin ancho de rueda.
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: luna
+  terreno: escalones
+  semilla: 1
+  terreno_params: {altura: 0.18, x_inicio: 3}
+  suspension: rocker_bogie
+  ruta: [[7, 0]]
+  duracion_s: 60
+  v_max: 0.5
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}

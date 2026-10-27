@@ -1,0 +1,9 @@
+<library path="atp_control">
+  <class name="atp_control/AtpMountSystem" type="atp_control::AtpMountSystem"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Montura Az/El de la Estacion ATP. Backend sim (dinamica de planta.py) o serial
+      (microcontrolador por el protocolo de serial_protocol.hpp).
+    </description>
+  </class>
+</library>

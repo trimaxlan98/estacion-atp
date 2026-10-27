@@ -1,0 +1,16 @@
+id: prueba-ligera
+title: Proceso ligero de prueba (estilo ros)
+level: T1
+kind: proceso
+area: seguidor
+description: >
+  Segunda escena de prueba: clase `ligero`, argumentos al estilo ROS (`clave:=valor`) y sin
+  `metricas`. Su comando es un `python3 -c` que escribe `fin.txt`.
+comando: [python3, -c, "import sys, pathlib; d = pathlib.Path(sys.argv[1]); d.mkdir(exist_ok=True); (d / 'fin.txt').write_text(' '.join(sys.argv[2:]))", "{run_dir}"]
+estilo_args: ros
+hecho_cuando: fin.txt
+recursos: ligero
+args: {alfa: 1.5, activo: true}
+params_schema:
+  alfa: {type: number, min: 0, max: 10}
+  activo: {type: bool}

@@ -1,0 +1,36 @@
+id: dron-perdida-gps
+title: Cuadrirrotor que pierde el GPS en pleno vuelo
+level: D3
+kind: proceso
+description: >
+  Qué se mide: mantener posición a 10 m con viento y ráfagas, con sensores y estimador, y perder el GPS a los 15 s. Se mide cuánto
+  deriva la estimación y la posición verdadera en 60 s.
+  Qué se espera: sin velocidad ni posición externas, el sesgo del acelerómetro (0.05 m/s2) integra a 1/2 b t2, unas decenas de
+  metros en 45 s; la altura se sostiene con el barómetro. Limitación: sin cámara ni flujo óptico que acoten la deriva horizontal;
+  sesgos y ruidos supuestos.
+area: plataforma
+comando: [python3, scripts/dron.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: ligero
+timeout_s: 600
+args:
+  cuerpo: tierra
+  semilla: 11
+  ruta: [[0, 0, 10]]
+  duracion_s: 60
+  parar_al_llegar: false
+  viento: [1.0, 0.0, 0.0]
+  rafaga_sigma: 0.5
+  v_max: 5.0
+  sensores: true
+  sensores_params: {gps_corte_s: 15.0}
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  semilla: {type: number, min: 0, max: 100000, label: "Semilla (ráfagas y sensores)"}
+  rafaga_sigma: {type: number, min: 0, max: 5, label: "Ráfagas, σ (m/s)"}
+  v_max: {type: number, min: 1, max: 12, label: "Velocidad máxima (m/s)"}

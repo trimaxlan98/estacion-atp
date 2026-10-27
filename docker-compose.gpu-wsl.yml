@@ -1,0 +1,15 @@
+# GPU para el servicio `gz` en WSL2 (Windows): OpenGL por Mesa d3d12 sobre la GPU de Windows (/dev/dxg).
+# No es el driver NVIDIA de Linux: en WSL la GPU llega a OpenGL por D3D12.
+# Lo usa scripts/gz_gpu.sh con GPU=1 cuando existe /dev/dxg:
+#   docker compose -f docker-compose.yml -f docker-compose.gpu-wsl.yml run gz ...
+# Requiere la red `host` del servicio gz (ya la tiene): el X de WSLg y Xephyr se alcanzan por socket abstracto.
+services:
+  gz:
+    devices:
+      - /dev/dxg
+    volumes:
+      - /usr/lib/wsl:/usr/lib/wsl:ro
+    environment:
+      - LD_LIBRARY_PATH=/usr/lib/wsl/lib
+      - GALLIUM_DRIVER=d3d12
+      - MESA_D3D12_DEFAULT_ADAPTER_NAME=NVIDIA

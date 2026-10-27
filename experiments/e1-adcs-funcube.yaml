@@ -1,0 +1,49 @@
+id: e1-adcs-funcube
+title: ADCS de un CubeSat 3U (DETUMBLE → NADIR → TRACK_GS) en un pase real
+level: E1
+kind: adcs
+description: >
+  Qué se mide: el control de actitud de un CubeSat 3U que parte con un
+  tumbling de 8 °/s, lo frena con magnetopares (B-dot, solo magnetómetro), se
+  orienta a nadir con ruedas de reacción (TRIAD + filtro de Kalman
+  multiplicativo de 6 estados) y 150 s antes del AOS apunta su antena a la
+  estación durante un pase real de FUNCUBE-1 sobre Ciudad de México (SGP4,
+  TLE de data/tle). Todo en lockstep con el reloj simulado: la misma corrida
+  da las mismas cifras.
+  Qué se espera: |ω| baja del umbral (0.59 °/s) en ~3 ks, el modo NADIR entra
+  en cuanto el sensor solar ve el Sol y TRACK_GS apunta con p95 ≈ 0.8° contra
+  un umbral de 2.4° (1 dB de pérdida con un haz de 8.3°); las ruedas llegan a
+  ~46 % de su momento máximo y el enlace en banda X cierra todo el pase.
+  Por qué importa: cierra el lazo entre el segmento espacio y el de tierra: el
+  error de apuntamiento de la antena del satélite se vuelve pérdida de
+  enlace con el mismo modelo del resto de la plataforma.
+  Validez: IGRF-13 de verdad, a bordo un modelo de grado 4 (con el dipolo el
+  filtro queda sobreconfiado); atmósfera exponencial; sin penumbra ni modo
+  seguro; satélite de referencia genérico, no el FUNcube real. Ver
+  src/sat_adcs/README.md. La corrida completa son ~7000 pasos (unos 2 min); la
+  variante corta (pase en luz a las 21:20 UTC, con tumbling de 3 °/s y 3000 s
+  de anticipo) son ~4000.
+launch: adcs.launch.py
+timeout_s: 1800
+args:
+  sat: FUNCUBE-1
+  station: cdmx
+  start_utc: "2026-10-02T20:30:00"
+  pass_index: 0
+  el_max_min: 20.0
+  lead_s: 3600.0
+  seed: 7
+  w0_deg_s: 8.0
+  step_s: 1.0
+  time_scale: 0
+  model_degree: 4
+  band: X
+  d_sat: 0.3
+params_schema:
+  start_utc: {type: enum, options: ["2026-10-02T20:30:00", "2026-10-02T08:30:00", "2026-10-02T21:20:00"], labels: {"2026-10-02T20:30:00": "pase de 79° en luz", "2026-10-02T08:30:00": "pase de 36° en eclipse", "2026-10-02T21:20:00": "pase en luz (variante corta)"}, label: "Escenario (fecha de inicio)"}
+  lead_s: {type: number, min: 600, max: 7200, label: "Anticipo mínimo al pase (s)"}
+  w0_deg_s: {type: number, min: 0.5, max: 20, label: "Tumbling inicial (deg/s)"}
+  seed: {type: integer, min: 0, max: 9999, label: "Semilla (actitud inicial y ruido)"}
+  model_degree: {type: integer, min: 1, max: 13, label: "Grado del campo magnético a bordo (1 = dipolo)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda de la antena del satélite"}
+  d_sat: {type: number, min: 0.05, max: 2, label: "Apertura de la antena del satélite (m)"}

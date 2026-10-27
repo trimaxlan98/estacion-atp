@@ -1,0 +1,31 @@
+id: dron-hover-marte
+title: Cuadrirrotor en Marte con rotores grandes
+level: D2
+kind: proceso
+description: >
+  Qué se mide: el mismo cuadrirrotor de 1.5 kg en Marte (g = 3.71, rho = 0.020 kg/m3) con rotores 14 veces mayores
+  (empuje/peso 1.33). Se mide si despega, la potencia de hover y el consumo en 30 s.
+  Qué se espera: despega y se mantiene a 10 m, con un consumo bastante mayor que en la Tierra por el aire tenue.
+  Limitación: el factor 14 no tiene fuente y sin efectos de Reynolds bajo el empuje queda sobrestimado; sirve para comparar.
+area: plataforma
+comando: [python3, scripts/dron.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: ligero
+timeout_s: 600
+args:
+  cuerpo: marte
+  semilla: 1
+  ruta: [[0, 0, 10]]
+  duracion_s: 30
+  parar_al_llegar: false
+  dron: {rotor_escala: 14.0}
+  v_max: 5.0
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  semilla: {type: number, min: 0, max: 100000, label: "Semilla (ráfagas)"}
+  v_max: {type: number, min: 1, max: 12, label: "Velocidad máxima (m/s)"}

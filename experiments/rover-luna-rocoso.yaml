@@ -1,0 +1,33 @@
+id: rover-luna-rocoso
+title: Rover en la Luna sobre terreno rocoso
+level: R1
+kind: proceso
+description: >
+  Qué se mide: un rover de seis ruedas (150 kg, rocker-bogie equivalente) recorre en simulación una ruta de dos
+  metas sobre un terreno rocoso generado por semilla (ruido fractal y rocas de hasta 0.30 m) con la gravedad lunar
+  (1.62 m/s2) y un suelo de regolito tipo Bekker (supuesto de orden de magnitud). Se miden distancia, energía,
+  deslizamiento medio, pendiente máxima y si llega a las metas.
+  Qué se espera: con g baja la rueda se carga menos y el empuje disponible baja; el deslizamiento medio es
+  mayor que en la Tierra con la misma orden. Limitación: los parámetros del suelo y la suspensión equivalente son
+  supuestos; no es una predicción de misión.
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: luna
+  terreno: rocoso
+  semilla: 7
+  ruta: [[12, 0], [12, 10]]
+  duracion_s: 90
+  v_max: 0.5
+params_schema:
+  semilla: {type: number, min: 0, max: 9999, label: "Semilla del terreno"}
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}

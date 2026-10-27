@@ -1,0 +1,15 @@
+# Instalar (en el host):
+#   sudo cp scripts/atp-vigilante.service /etc/systemd/system/
+#   sudo sed -i "s#@REPO@#$(pwd)#" /etc/systemd/system/atp-vigilante.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now atp-vigilante
+[Unit]
+Description=Vigilante de carga para contenedores ROS (ATP)
+After=docker.service
+
+[Service]
+ExecStart=@REPO@/scripts/vigilante_host.sh
+Restart=always
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target

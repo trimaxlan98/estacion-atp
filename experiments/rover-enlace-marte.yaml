@@ -1,0 +1,34 @@
+id: rover-enlace-marte
+title: Enlace del rover en Marte con el relé MRO
+level: R7
+kind: proceso
+description: >
+  Qué se mide: durante unos soles, cuántos pases del relé MRO ve un rover en el cráter Gale (4.6 S, 137.4 E), cuánto dura
+  cada uno, cuántos megabits al día entran por UHF con una antena helicoidal y cuánta latencia tiene la telemetría
+  almacenada (DTN) hasta la Tierra, con el retardo de luz del día elegido.
+  Qué se espera: del orden de 2 pases por sol y de varios cientos de Mbit por sol (en la guía JPL de 2019, MRO dio 498 Mbit
+  por día a Curiosity en su primer año). Limitación: órbita kepleriana sin precesión, potencia y antenas del rover supuestas,
+  sin validar contra telemetría real.
+area: rf
+comando: [python3, scripts/enlace_rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+recursos: ligero
+timeout_s: 600
+args:
+  planeta: marte
+  rele: mro
+  lat_deg: -4.6
+  lon_deg: 137.4
+  terreno: llano
+  antena: omni_helice
+  dias: 5
+  fecha: "2026-10-07"
+params_schema:
+  lat_deg: {type: number, min: -90, max: 90, label: "Latitud del rover (deg)"}
+  lon_deg: {type: number, min: -180, max: 360, label: "Longitud del rover (deg)"}
+  antena: {type: enum, options: [omni_lineal, omni_helice, direccional], label: "Antena UHF del rover"}
+  terreno: {type: enum, options: [llano, rocoso, crater], label: "Terreno (horizonte local)"}
+  dias: {type: number, min: 1, max: 30, label: "Días simulados"}
+  rele: {type: enum, options: [mro, odyssey, maven], label: "Relé orbital"}

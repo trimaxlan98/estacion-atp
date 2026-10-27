@@ -1,0 +1,37 @@
+# Estaciones terrenas de la Estacion ATP.
+# lat/lon: grados GEODESICOS (WGS84), lon + al este. alt_m: metros sobre el
+# ELIPSOIDE (no sobre el geoide: la diferencia, decenas de metros, no importa
+# para un apuntamiento de 0.1 grados).
+# mascara_deg: elevacion minima de operacion (edificios, ruido, ancho de haz).
+# Se elige por clave o por nombre: station:=cdmx  /  station:="Ciudad de Mexico".
+por_defecto: cdmx
+
+estaciones:
+  cdmx:
+    nombre: Ciudad de Mexico
+    lat: 19.4326
+    lon: -99.1332
+    alt_m: 2240
+    mascara_deg: 5
+    descripcion: Valor por defecto de la Estacion (altiplano, 2240 m).
+  tromso:
+    nombre: Tromso
+    lat: 69.6496
+    lon: 18.9560
+    alt_m: 20
+    mascara_deg: 5
+    descripcion: Latitud alta, ejemplo; muchos pases de orbitas polares y de ISS ninguno.
+  ecuador:
+    nombre: Quito
+    lat: -0.1807
+    lon: -78.4678
+    alt_m: 2850
+    mascara_deg: 10
+    descripcion: Ecuatorial; mascara de 10 deg como ejemplo de horizonte urbano.
+  madrid:
+    nombre: Madrid
+    lat: 40.4168
+    lon: -3.7038
+    alt_m: 650
+    mascara_deg: 5
+    descripcion: Latitud media, ejemplo.

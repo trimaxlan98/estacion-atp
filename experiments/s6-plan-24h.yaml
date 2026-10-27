@@ -1,0 +1,45 @@
+id: s6-plan-24h
+title: Plan de contactos de la red (4 estaciones, ACM DVB-S2)
+level: S6
+kind: plan
+description: >
+  Qué se mide: qué contactos hacer, con qué antena y cuántos GB bajan en 24 h
+  con una red de cuatro estaciones (Ciudad de México, Tromsø, Quito y Madrid)
+  y ocho satélites (la ISS, cinco NOAA y dos METEOR-M2). Cada pase sale de
+  SGP4 con los TLE de data/tle; el volumen de cada contacto integra la tasa
+  que permite el enlace (modulación y codificación adaptativas DVB-S2, ETSI
+  EN 302 307) con el rango real del pase. Compara el plan codicioso con el
+  óptimo (programación entera, HiGHS) y mide lo que aporta una estación
+  repitiendo el plan sin ella.
+  Qué se espera: unas 173 ventanas candidatas y 115 contactos en el plan
+  óptimo (≈ 350 GB); el codicioso por peso queda ≈ 8 % por debajo; quitar
+  Tromsø cuesta ≈ 55 % de los GB, porque los NOAA y METEOR heliosíncronos
+  convergen hacia el polo y la ISS (51.6°) no se ve desde allí.
+  Por qué importa: es la pregunta de operación de una red de tierra, y la
+  respuesta cambia con la geometría de la red, no con el algoritmo.
+  Validez: los GB son del escenario (misma carga útil hipotética en banda X,
+  EIRP 12 dBW, 10 Mbaud, plato de 3 m, sin atmósfera), no telemetría real de
+  esos satélites. Una antena por estación; rotor de 6 °/s en acimut. La fecha
+  de inicio es fija: el mismo plan sale idéntico byte a byte. Ver
+  docs/PLANIFICADOR.md.
+launch: planificar.py
+timeout_s: 900
+args:
+  sats: "ISS,NOAA 15,NOAA 18,NOAA 19,NOAA 20,NOAA 21,METEOR-M2 3,METEOR-M2 4"
+  estaciones: cdmx,tromso,ecuador,madrid
+  inicio: "2026-10-02T12:00:00"
+  horas: 24
+  banda: X
+  eirp: 12.0
+  margen_acm: 1.0
+  keyhole: marcar
+  metodo: auto
+  sin: tromso
+params_schema:
+  horas: {type: number, min: 1, max: 48, label: "Horizonte (h)"}
+  banda: {type: enum, options: [UHF, S, X, Ka], label: "Banda de bajada"}
+  eirp: {type: number, min: 0, max: 60, label: "EIRP del satélite (dBW)"}
+  margen_acm: {type: number, min: 0, max: 6, label: "Margen de ACM sobre ETSI (dB)"}
+  keyhole: {type: enum, options: [marcar, recortar, descartar], label: "Pases por el keyhole"}
+  metodo: {type: enum, options: [auto, bb, milp], label: "Óptimo (auto = propio y, si no prueba, HiGHS)"}
+  sin: {type: enum, options: [tromso, cdmx, ecuador, madrid, ""], labels: {"": "ninguna"}, label: "Repetir el plan sin la estación"}

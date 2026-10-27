@@ -1,0 +1,21 @@
+build/
+install/
+log/
+__pycache__/
+*.pyc
+.claude/
+runs/
+station/data/
+.pytest_cache/
+contenido/media/
+.v.sh
+.n23.sh
+
+# Videos grabados en local (no se suben)
+videos/
+
+# Ajustes de compose de cada maquina (topes de CPU, restart): no se suben
+docker-compose.override.yml
+
+dist/
+logs/*.tmp

@@ -1,0 +1,93 @@
+services:
+  ros:
+    build:
+      context: ./docker
+      args: { UID: "1000", GID: "1000" }
+    image: ros2-jazzy-dev
+    container_name: ros2_dev
+    network_mode: host          # DDS discovery entre contenedores/host
+    ipc: host
+    # Topes para que una corrida desbocada no congele el host (viernes 2-oct: 6 contactos
+    # en paralelo dejaron la maquina sin responder). Ajustar a la maquina: 8 hilos / 11 GB.
+    # ATP_CPUS: Docker rechaza un tope mayor que los nucleos del host
+    cpus: ${ATP_CPUS:-5}
+    mem_limit: 7g
+    memswap_limit: 7g
+    pids_limit: 4096
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    stdin_open: true
+    tty: true
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DOMAIN_ID=42
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ./:/ws
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+  # La Estacion: backend FastAPI en 127.0.0.1:8090. Cada corrida lanza su propio
+  # `ros2 launch` con un ROS_DOMAIN_ID distinto (100-199): la red es host.
+  station:
+    image: ros2-jazzy-dev
+    build:
+      context: ./docker
+      args: { UID: "1000", GID: "1000" }
+    network_mode: host
+    ipc: host
+    # Topes para que una corrida desbocada no congele el host (viernes 2-oct: 6 contactos
+    # en paralelo dejaron la maquina sin responder). Ajustar a la maquina: 8 hilos / 11 GB.
+    # ATP_CPUS: Docker rechaza un tope mayor que los nucleos del host
+    cpus: ${ATP_CPUS:-5}
+    mem_limit: 7g
+    memswap_limit: 7g
+    pids_limit: 4096
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    init: true                  # reaper de procesos: el backend lanza grupos de nodos
+    stop_grace_period: 20s
+    working_dir: /ws
+    environment:
+      - ROS_DOMAIN_ID=42
+      - STATION_PORT=${STATION_PORT:-8090}
+      # Gobernador de recursos (docs/APP.md 3; station/README.md): cupos por clase, umbral de carga
+      # (1 min del host) por clase y tope global. Por debajo del vigilante (scripts/vigilante_host.sh: 12).
+      - STATION_MAX_CONCURRENT=${STATION_MAX_CONCURRENT:-2}
+      - STATION_CUPO_LIGERO=${STATION_CUPO_LIGERO:-2}
+      - STATION_CUPO_PESADO=${STATION_CUPO_PESADO:-1}
+      - STATION_CUPO_GAZEBO=${STATION_CUPO_GAZEBO:-1}
+      - STATION_CUPO_MANIM=${STATION_CUPO_MANIM:-1}
+      - STATION_UMBRAL_LIGERO=${STATION_UMBRAL_LIGERO:-10}
+      - STATION_UMBRAL_PESADO=${STATION_UMBRAL_PESADO:-6}
+      - STATION_UMBRAL_GAZEBO=${STATION_UMBRAL_GAZEBO:-4}
+      - STATION_UMBRAL_MANIM=${STATION_UMBRAL_MANIM:-5}
+      - STATION_REINTENTOS=${STATION_REINTENTOS:-2}
+    volumes:
+      - ./:/ws
+    command: ["bash", "/ws/station/entrypoint.sh"]
+
+  # Equipo K: ros2_control + Gazebo Harmonic (gz sim). Imagen aparte, hereda de
+  # ros2-jazzy-dev (docker/Dockerfile.gz); el servicio `ros` queda intacto.
+  gz:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.gz
+    image: ros2-jazzy-gz
+    network_mode: host
+    ipc: host
+    # Topes para que una corrida desbocada no congele el host (viernes 2-oct: 6 contactos
+    # en paralelo dejaron la maquina sin responder). Ajustar a la maquina: 8 hilos / 11 GB.
+    # ATP_CPUS: Docker rechaza un tope mayor que los nucleos del host
+    cpus: ${ATP_CPUS:-5}
+    mem_limit: 7g
+    memswap_limit: 7g
+    pids_limit: 4096
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    init: true
+    working_dir: /ws
+    environment:
+      - ROS_DOMAIN_ID=82
+      - GZ_IP=127.0.0.1          # descubrimiento de gz-transport por loopback (red host)
+    volumes:
+      - ./:/ws

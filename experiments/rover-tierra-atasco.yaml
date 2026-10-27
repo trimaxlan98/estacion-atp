@@ -1,0 +1,34 @@
+id: rover-tierra-atasco
+title: Rover rocker-bogie atascado en una pendiente lateral de 25° en la Tierra
+level: R6
+kind: proceso
+description: >
+  Qué se mide: la misma escena que rover-tierra-lateral con la pendiente lateral subida a 25 grados (sube hacia +y, el rover
+  avanza por +x, arena seca terrestre, φ 28 grados). Se mide cuántas veces se atasca el rover y cuánto avanza.
+  Qué se espera: con la física corregida (rodadura_en_motor, ronda 8) la de 20 grados ya no se atasca; a 25 grados sí, una vez
+  (a 20 grados, 0 atascos y 8.19 m; a 25, 1 atasco y 7.71 m; medido el 2026-10-07).
+  Por qué existe: es la escena con un atasco real que usan el E2E y el video para comprobar las marcas y el aviso del visor 3D
+  del rover (antes lo daba rover-tierra-lateral). Validez: en simulación, con estos supuestos; el umbral de atasco de 25
+  grados es del modelo, no una medida del terreno.
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: tierra
+  terreno: pendiente
+  semilla: 1
+  terreno_params: {angulo_deg: 25, direccion_deg: 90}
+  suspension: rocker_bogie
+  ruta: [[10, 0]]
+  duracion_s: 40
+  v_max: 0.4
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}

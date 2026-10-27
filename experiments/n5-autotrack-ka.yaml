@@ -1,0 +1,35 @@
+id: n5-autotrack-ka
+title: Autotrack por conical scan en banda Ka
+level: N5
+kind: loop
+description: >
+  Qué se mide: el error de apuntamiento REAL (contra el satélite verdadero,
+  no contra la predicción) cuando la efeméride va 0.1 s atrasada y la montura
+  tiene un sesgo de ~0.13°. En banda Ka el haz de un plato de 3 m mide 0.233°
+  a media potencia: ese error de program track ya cuesta varios dB.
+  Con autotrack el alimentador nuta en un círculo de 0.2·θ3 (0.48 dB de
+  pérdida de cruce); de la modulación de la potencia recibida se despeja el
+  desapuntamiento (discriminador exacto para el lóbulo gaussiano) y se integra
+  en una corrección sobre la referencia.
+  Qué se espera: program track solo ≈ 0.16° rms y casi nada dentro de 0.1°;
+  con autotrack ≈ 0.005° rms, 100 % dentro de 0.1° y el enlace cerrado todo
+  el pase.
+  Por qué importa: es lo que hacen las estaciones reales en bandas altas: la
+  predicción lleva la antena a la vecindad, la señal la centra.
+launch: atp_autotrack.launch.py
+args:
+  autotrack: "true"
+  band: Ka
+  ephem_dt_s: 0.1
+  bias_xel_deg: 0.10
+  bias_el_deg: -0.08
+  noise_db: 0.2
+  time_scale: 0
+params_schema:
+  autotrack: {type: enum, options: ["true", "false"], label: "Autotrack (false = solo program track)"}
+  band: {type: enum, options: [S, X, Ka], label: "Banda"}
+  ephem_dt_s: {type: number, min: 0, max: 0.5, label: "Atraso de la efeméride (s)"}
+  bias_xel_deg: {type: number, min: -0.3, max: 0.3, label: "Sesgo cross-elevación (°)"}
+  bias_el_deg: {type: number, min: -0.3, max: 0.3, label: "Sesgo de elevación (°)"}
+  noise_db: {type: number, min: 0, max: 2, label: "Ruido de la señal (dB, 1 sigma)"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

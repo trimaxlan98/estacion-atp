@@ -1,0 +1,34 @@
+id: n2-keyhole-cenital
+title: Pase casi cenital y keyhole
+level: N2
+kind: loop
+description: >
+  Qué se mide: el error de apuntamiento de una antena de dos ejes (acimut y
+  elevación) siguiendo la parte alta de un pase LEO a 550 km que culmina a
+  85°, con la máscara en 70° (solo se sigue el tramo de ~51 s en que el
+  satélite está por encima de 70°). Se usa geometría esférica con órbita
+  circular, no SGP4.
+  Qué se espera: cerca del cenit la velocidad de acimut exigida diverge como
+  1/cos(el): en la culminación a 85° son unos 9 °/s. Aquí el rotor no tiene
+  tope de velocidad (solo de par, 8 N·m), así que el lazo puede seguirlo,
+  pero el error de acimut crece justo en la culminación y es el que
+  domina el máximo. Con un tope de velocidad realista (por ejemplo 6 °/s) la
+  montura pierde al satélite en el keyhole: es un efecto físico, no un fallo.
+  A 550 km y 6 °/s el límite teórico de culminación es ~82.5°.
+  Por qué importa: es el caso que justifica diseñar rotores y planificar
+  pases según su elevación máxima. El error en acimut se proyecta sobre el
+  cielo multiplicado por cos(el), por eso el error de apuntamiento real es
+  mucho menor que el de acimut crudo.
+launch: atp_loop.launch.py
+args:
+  el_max: 85
+  mask: 70
+  vel_max: 0            # 0 = sin tope de velocidad (= default de atp_loop.launch.py)
+  time_scale: 0
+  band: S
+params_schema:
+  el_max: {type: number, min: 75, max: 89.9, label: "Elevación máxima del pase (°)"}
+  mask: {type: number, min: 50, max: 74, label: "Máscara de elevación (°)"}
+  vel_max: {type: number, min: 0, max: 30, label: "Tope de velocidad del rotor (°/s, 0 = sin tope)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

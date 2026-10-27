@@ -1,0 +1,33 @@
+# Trabajador de render del host (docs/RENDER.md, docs/APP.md 4.1): ejecuta los renders `ejecutor: host`
+# (Gazebo, Manim) que el backend de la Estacion le asigna. Servicio de systemd DE USUARIO (no root):
+#
+#   mkdir -p ~/.config/systemd/user
+#   cp scripts/render/atp-render.service ~/.config/systemd/user/     # ajusta la ruta del repo si hace falta
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now atp-render.service
+#   journalctl --user -u atp-render -f                               # log del trabajador
+#   loginctl enable-linger $USER                                     # (opcional) que siga sin sesion abierta
+#
+# Necesita en el host: docker (el usuario en el grupo docker), Xephyr, ffmpeg, python3. No toca el vigilante del
+# host (atp-vigilante.service, de root): conviven; si el vigilante corta un contenedor, el envoltorio sale con 143 y el
+# backend reintenta el trabajo.
+[Unit]
+Description=Trabajador de render de la Estacion ATP (host)
+After=network.target docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/Documentos/code-projects/estacion-atp
+ExecStart=/usr/bin/python3 %h/Documentos/code-projects/estacion-atp/scripts/render/trabajador_host.py --url http://127.0.0.1:8090
+Restart=always
+RestartSec=5
+# SIGTERM al servicio: el trabajador detiene el trabajo en curso (grupo de procesos) y notifica `fin`
+KillMode=mixed
+TimeoutStopSec=40
+Environment=PYTHONUNBUFFERED=1
+# escritorio real (padre de las pantallas Xephyr): ajusta si tu sesion no es :0
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=%h/.Xauthority
+
+[Install]
+WantedBy=default.target

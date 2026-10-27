@@ -1,0 +1,8 @@
+<library path="atp_control">
+  <class name="atp_control/AtpTrackingController" type="atp_control::AtpTrackingController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Seguimiento de /atp/reference con el PID o el LQR (+ Kalman) de la casa a 20 Hz.
+    </description>
+  </class>
+</library>

@@ -1,0 +1,18 @@
+# Climatologia de nubes para el enlace optico (paquete atp_optico, docs/OPTICO.md).
+# p_claro = probabilidad de linea de vista libre de nubes (CFLOS) de la estacion, tomada sobre el
+# ano. Es el parametro que MAS manda en la disponibilidad optica y el que menos se conoce:
+# cada valor dice su origen. SUSTITUIR por la estadistica CFLOS (ISCCP, MODIS, ERA5) del sitio real.
+# tau_h = persistencia del estado de nubes (horas); L_km = longitud de correlacion espacial entre sitios.
+modelo:
+  paso_h: 1.0
+  tau_h: 8.0          # SUPUESTO: el estado de nubes dura del orden de un turno (horas)
+  L_km: 500.0         # AJUSTADO a un dato: la red optica alemana (4 sitios de 25-65 %) da 83.68 % (arXiv 2402.13282, resumen); L ~ 480-500 km lo reproduce. No es una validacion independiente
+sitios:
+  madrid:
+    p_claro: 0.637    # Fuchs y Moll 2015 (J. Opt. Commun. Netw. 7(12)): CFLOS de Madrid 63.7 %, leido en un resumen de busqueda
+  cdmx:
+    p_claro: 0.55     # SUPUESTO (altiplano: estacion seca despejada, lluvias de verano por la tarde); sin fuente leida
+  tromso:
+    p_claro: 0.30     # SUPUESTO por analogia con sitios del norte de Europa: Trauen 25 %, Neustrelitz 32 % (arXiv 2402.13282, leido en resumen)
+  ecuador:
+    p_claro: 0.35     # SUPUESTO (Quito: nubosidad alta, convectiva); sin fuente leida

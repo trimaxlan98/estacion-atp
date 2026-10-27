@@ -1,0 +1,32 @@
+id: rover-tierra-lateral
+title: Rover rocker-bogie cruzando una pendiente lateral en la Tierra
+level: R6
+kind: proceso
+description: >
+  Qué se mide: el rover con suspensión rocker-bogie cruza en simulación una pendiente lateral de 20 grados (sube hacia +y,
+  el rover avanza por +x) con arena seca terrestre (φ 28 grados). Se mide el margen de estabilidad al vuelco (45 grados en
+  llano, el ángulo estático geométrico del modelo), el alabeo y el deslizamiento lateral.
+  Qué se espera: el margen baja a unos 25 grados y el rover deriva cuesta abajo antes de volcar (el suelo cede antes que la geometría).
+  Limitación: el vuelco real exige un suelo con más agarre o un obstáculo; ver docs/ROVER.md «Resultados R6».
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: tierra
+  terreno: pendiente
+  semilla: 1
+  terreno_params: {angulo_deg: 20, direccion_deg: 90}
+  suspension: rocker_bogie
+  ruta: [[10, 0]]
+  duracion_s: 40
+  v_max: 0.4
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}

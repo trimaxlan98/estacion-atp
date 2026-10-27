@@ -1,0 +1,31 @@
+id: dron-titan-vuelo
+title: Cuadrirrotor en Titán
+level: D2
+kind: proceso
+description: >
+  Qué se mide: el mismo cuadrirrotor en Titán (g = 1.35, aire de 5.4 kg/m3) recorriendo una ruta de 40 m con ráfagas.
+  Qué se espera: empuje/peso muy alto y potencia de hover de decenas de watts; el control debe ir con ganancias de partida sin
+  saturar. Limitación: sin modelo de turbulencia ni temperatura de Titán; parámetros del vehículo supuestos.
+area: plataforma
+comando: [python3, scripts/dron.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: ligero
+timeout_s: 600
+args:
+  cuerpo: titan
+  semilla: 2
+  ruta: [[20, 0, 10], [40, 0, 10]]
+  duracion_s: 60
+  rafaga_sigma: 0.5
+  viento: [1.0, 0.0, 0.0]
+  v_max: 5.0
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  semilla: {type: number, min: 0, max: 100000, label: "Semilla (ráfagas)"}
+  rafaga_sigma: {type: number, min: 0, max: 5, label: "Ráfagas, σ (m/s)"}
+  v_max: {type: number, min: 1, max: 12, label: "Velocidad máxima (m/s)"}

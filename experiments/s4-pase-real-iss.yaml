@@ -1,0 +1,33 @@
+id: s4-pase-real-iss
+title: Pase real de un satélite sobre la estación (SGP4)
+level: S4
+kind: loop
+description: >
+  Qué se mide: el lazo de apuntamiento siguiendo un pase REAL, propagado con
+  SGP4 desde un TLE de CelesTrak (data/tle) y visto desde una estación con
+  coordenadas WGS84 (data/estaciones.yaml). El reloj simulado arranca en el
+  AOS del pase elegido a partir de la fecha fija del experimento, así que la
+  corrida es repetible.
+  Qué se espera: un pase de la ISS sobre Ciudad de México de unos 8 min a
+  34° de elevación máxima; velocidades de acimut bajas (<1 °/s), error de
+  apuntamiento muy por debajo de 0.1° y enlace en banda S cerrado todo el
+  pase, con un Doppler de ±48 kHz.
+  Por qué importa: es el puente entre el modelo pedagógico (geometría
+  esférica) y la operación: la misma estación, con el cielo de verdad.
+  Validez: SGP4 contrastado con los vectores oficiales de Vallado; la cadena
+  de marcos, con Skyfield (0.003°). El error del TLE crece 1-3 km por día.
+launch: atp_loop.launch.py
+args:
+  profile: tle
+  sat: ISS
+  station: cdmx
+  pass_index: 0
+  start_utc: "2026-10-02T15:00:00"
+  band: S
+  time_scale: 0
+params_schema:
+  sat: {type: enum, options: [ISS, CSS (TIANHE), NOAA 15, NOAA 18, NOAA 19, NOAA 20 (JPSS-1), METEOR-M2 3, FUNCUBE-1 (AO-73)], label: "Satélite"}
+  station: {type: enum, options: [cdmx, tromso, ecuador, madrid], label: "Estación"}
+  pass_index: {type: integer, min: 0, max: 10, label: "Pase número (desde la fecha del experimento)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

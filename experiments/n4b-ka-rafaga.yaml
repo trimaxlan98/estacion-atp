@@ -1,0 +1,36 @@
+id: n4b-ka-rafaga
+title: Banda Ka con ráfaga de viento
+level: N4
+kind: loop
+description: >
+  Qué se mide: un pase casi cenital (culmina a 85°, máscara 20°, ~5.4 min) en
+  banda Ka (30 GHz), donde el haz del plato de 3 m es de solo 0.23°, con una
+  ráfaga de viento (par de 3 N·m durante 1 s, a los 60 s del AOS por
+  defecto) que empuja la montura fuera de la trayectoria. Se mide cuánto
+  tarda el lazo en recuperarse y cuántos dB pierde el enlace mientras tanto.
+  Qué se espera: la pérdida por desapuntamiento crece como 12·(e/θ3)². Con
+  θ3 = 0.23°, un error de apenas 0.1° (el presupuesto del curso) ya cuesta
+  unos 2.2 dB, y a 0.23° cuesta 12 dB. Una ráfaga de 3 N·m con kp = 25 es un
+  golpe grande: se espera un pico de error de grados y que el enlace se abra
+  (margen negativo) durante el transitorio. Además, el Doppler en Ka llega a
+  cientos de kHz, con tasas de miles de Hz/s: a esa frecuencia el receptor
+  es tan difícil como la antena.
+  Por qué importa: en bandas altas el requisito de apuntamiento se vuelve el
+  factor dominante del presupuesto de enlace. Este experimento cuantifica el
+  tiempo de enlace perdido por una perturbación, que es lo que importa al
+  operador.
+launch: atp_loop.launch.py
+args:
+  el_max: 85
+  mask: 20
+  time_scale: 0
+  band: Ka
+  gust_nm: 3.0
+  gust_start: 60
+params_schema:
+  el_max: {type: number, min: 40, max: 89.9, label: "Elevación máxima del pase (°)"}
+  mask: {type: number, min: 5, max: 35, label: "Máscara de elevación (°)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda"}
+  gust_nm: {type: number, min: 0, max: 6, label: "Par de la ráfaga (N·m)"}
+  gust_start: {type: number, min: 5, max: 150, label: "Instante de la ráfaga desde AOS (s)"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

@@ -1,0 +1,33 @@
+id: rover-marte-dunas
+title: Rover en Marte sobre dunas
+level: R1
+kind: proceso
+description: >
+  Qué se mide: el mismo rover recorre en simulación una ruta de dos metas sobre un campo de dunas (crestas
+  sinusoidales, pendiente máxima de unos 17 grados, arena suelta) con la gravedad de Marte (3.71 m/s2) y un suelo
+  tipo arena fina marciana (supuesto de orden de magnitud). La atmósfera (0.020 kg/m3) aporta una resistencia
+  aerodinámica despreciable.
+  Qué se espera: más deslizamiento en las subidas de duna y más energía por metro que sobre llano; el resultado
+  difiere del de la Luna y de la Tierra con la misma orden. Limitación: parámetros de suelo no medidos para este
+  modelo; sin cinemática real del balancín.
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: marte
+  terreno: dunas
+  semilla: 3
+  ruta: [[15, 0], [15, 12]]
+  duracion_s: 120
+  v_max: 0.5
+params_schema:
+  semilla: {type: number, min: 0, max: 9999, label: "Semilla del terreno"}
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}

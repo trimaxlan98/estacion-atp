@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>atp_mision</name>
+  <version>0.1.0</version>
+  <description>Mision integrada de la Estacion ATP: un dia de operaciones de una red (planificador, un lockstep por contacto con SGP4 real, autotrack, receptor SDR, determinacion de orbita y contabilidad de datos con lo medido)</description>
+  <maintainer email="contacto@codeaerospace.com">code</maintainer>
+  <license>Apache-2.0</license>
+  <depend>atp_ros</depend>
+  <exec_depend>atp_sdr</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

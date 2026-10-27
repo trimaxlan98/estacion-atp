@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>atp_sdr</name>
+  <version>0.1.0</version>
+  <description>Cadena de RF a nivel de muestras IQ de la Estacion ATP: beacon con Doppler real, adquisicion, seguimiento FLL/PLL, Costas, sincronizacion de simbolo y estimacion de C/N0, en lockstep</description>
+  <maintainer email="contacto@codeaerospace.com">code</maintainer>
+  <license>Apache-2.0</license>
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>atp_interfaces</depend>
+  <depend>atp_ros</depend>
+  <depend>sdr_interfaces</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

@@ -1,0 +1,28 @@
+# Campana Monte Carlo de apuntamiento.
+# mode: "analitico" (cuadratura de terminos, curso 30 L3.2) o
+#       "lazo" (simula el lazo PID+montura de cada pase, vectorizado).
+string mode
+int32 n
+int32 seed
+float64 sigma_wind_nm
+float64 sigma_noise_deg
+float64 bias_max_deg
+float64 latency_max_s
+float64 kp
+float64 mask_deg
+float64 vel_max_deg_s
+---
+float64[] rms_deg
+float64[] el_max_deg
+float64 p50_deg
+float64 p95_deg
+float64 p99_deg
+float64 worst_deg
+bool meets_objective        # p95 < objetivo
+float64 objective_deg
+float64 p95_uncertainty_pts # +- puntos percentiles por tamano de muestra
+float64 wall_time_s
+---
+int32 done
+int32 total
+float64 p95_running_deg

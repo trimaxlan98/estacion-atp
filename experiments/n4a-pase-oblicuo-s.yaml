@@ -1,0 +1,33 @@
+id: n4a-pase-oblicuo-s
+title: Pase oblicuo completo en banda S
+level: N4
+kind: loop
+description: >
+  Qué se mide: un pase LEO completo (550 km) de unos 9 min que culmina a 30°,
+  con máscara de 5°, seguido por el lazo PID en dos ejes y evaluado con el
+  presupuesto de enlace de bajada en banda S (2.2 GHz, plato de 3 m): Doppler
+  y su tasa, pérdida por desapuntamiento, C/N0, Eb/N0 y margen. Es el pase
+  que en tiempo real ocupa ~9 minutos y que con el reloj simulado acelerado
+  (x10) se corre en menos de un minuto. Geometría esférica, no SGP4.
+  Qué se espera: un pase oblicuo tiene baja velocidad angular, así que el
+  lazo sigue bien y el error de apuntamiento queda muy por debajo del haz
+  de ~3.2° de la banda S (la pérdida por desapuntamiento es de décimas de dB
+  como mucho). Doppler de unos ±47 kHz con una tasa máxima cercana a
+  390 Hz/s, y un margen de enlace positivo durante todo el pase. Estas cifras
+  de geometría (Doppler y su tasa) no dependen del control.
+  Por qué importa: es el caso nominal que el diseño debe cumplir antes de
+  hablar de casos difíciles. La tasa Doppler es lo que el receptor debe
+  seguir con su lazo de portadora.
+launch: atp_loop.launch.py
+args:
+  el_max: 30
+  mask: 5
+  time_scale: 0
+  band: S
+  eirp_dbw: 9.0         # = default de atp_loop.launch.py
+params_schema:
+  el_max: {type: number, min: 10, max: 89.9, label: "Elevación máxima del pase (°)"}
+  mask: {type: number, min: 0, max: 9, label: "Máscara de elevación (°)"}
+  band: {type: enum, options: [UHF, S, X, Ka], label: "Banda"}
+  eirp_dbw: {type: number, min: -10, max: 40, label: "EIRP del satélite (dBW)"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

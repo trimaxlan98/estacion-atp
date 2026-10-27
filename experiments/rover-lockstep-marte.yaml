@@ -1,0 +1,41 @@
+id: rover-lockstep-marte
+title: Rover en dunas de Marte en lockstep ROS (navegador y dinámica) con verificación sin ROS
+level: R9
+kind: proceso
+description: >
+  Qué se mide: la cadena rover_dinamica + rover_navegador + sim_clock de 0.1 s en lockstep ROS 2 (CONTRATO §8) en dunas de
+  Marte (g = 3.71 m/s2, suelo de Bekker supuesto), con el navegador básico (rumbo proporcional) o el completo (A*, pure
+  pursuit, tracción y seguridad). Al terminar repite la escena sin ROS y compara los bytes de telemetry.jsonl, metrics.json y
+  mandos.jsonl en equivalencia.json; si no coinciden, informa el error máximo de posición y de rumbo.
+  Qué se espera: el mismo número de filas y los mismos bytes con y sin ROS (el mando calculado con el estado del instante t
+  rige el intervalo [t, t+0.1 s) en las dos corridas); el rover avanza algunos metros hacia las metas en 40 s con 0.4 m/s.
+  Limitación: valida la tubería y el determinismo de la simulación, no el comportamiento del rover real; el suelo y la
+  suspensión equivalente son supuestos; sin enlace con la Tierra (el retardo de Marte, 11-22 min por vía, está en la escena
+  de la Luna y en rover-enlace-marte). Cada segundo simulado cuesta casi uno de pared.
+area: plataforma
+comando: [python3, scripts/rover_lockstep.py, --id, "{run_id}", --salida, "{runs_dir}", --dominio, "{domain}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: pesado
+timeout_s: 1800
+args:
+  planeta: marte
+  terreno: dunas
+  semilla: 3
+  ruta: [[8, 0], [8, 6]]
+  duracion_s: 40
+  v_max: 0.4
+  navegacion: basico
+  verificar: "si"
+  time_scale: 0
+params_schema:
+  semilla: {type: number, min: 0, max: 9999, label: "Semilla del terreno"}
+  duracion_s: {type: number, min: 10, max: 120, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}
+  navegacion: {type: enum, options: [basico, completa], label: "Navegación (rumbo proporcional o A* completa)"}
+  verificar: {type: enum, options: ["si", "no"], label: "Repetir sin ROS y comparar los bytes"}
+  time_scale: {type: enum, options: [0, 1, 2], labels: {0: "lo más rápido posible", 1: "tiempo real", 2: "el doble del tiempo real"}, label: "Ritmo del reloj simulado"}

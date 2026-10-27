@@ -1,0 +1,19 @@
+id: graficas
+title: Gráficas clave de una corrida (PNG con la paleta de la marca y lámina 1920×1080)
+description: >
+  Qué hace: dibuja con matplotlib las curvas clave de cualquier corrida con telemetry.jsonl (lazo: error con la
+  banda del objetivo, cielo az/el, Doppler y rango, margen de enlace; ADCS: error de actitud por modo, velocidad
+  angular, ruedas, conocimiento) o de una corrida de red con metricas.json (quién sirve a cada antena con sus
+  handovers, satélites útiles por estación, error de apuntamiento, servicio y cobertura), una PNG por gráfica
+  (1600×900) y una lámina resumen 1920×1080 con las cifras clave. Por qué importa: es el medio más barato y el que
+  se puede incrustar en un informe o una presentación. Validez: toda cifra rotulada sale literal de metrics.json o
+  metricas.json de la corrida; las series son las grabadas (los picos se conservan al reducir puntos).
+requiere: {cualquiera: true}
+comando: [bash, scripts/render/graficas.sh, "{run_dir}", "{salida}"]
+estilo_args: cli
+recursos: ligero
+ejecutor: host
+pantalla: false
+duracion_estimada_s: 20
+args: {}
+params_schema: {}

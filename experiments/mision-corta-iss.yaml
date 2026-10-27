@@ -1,0 +1,42 @@
+id: mision-corta-iss
+title: Misión corta — plan y ejecución de los contactos de la ISS sobre una estación en unas horas
+level: M2
+kind: proceso
+area: mision
+description: >
+  Qué se mide: la misión integrada de docs/MISION.md recortada a un horizonte de unas horas, una estación y un satélite:
+  el planificador (óptimo, DVB-S2) elige los contactos y CADA contacto asignado se ejecuta como una corrida en lockstep
+  con el pase real SGP4 del satélite (programa de seguimiento, sin receptor SDR ni determinación de órbita); los GB se
+  recalculan con el error de apuntamiento y el C/N0 medidos en cada corrida y el informe verifica que cuadran.
+  Qué se espera: con 3 h desde las 12:00 UTC, un contacto de la ISS sobre Ciudad de México (≈ 5 min, ≈ 0.67 GB), ejecutado,
+  con los GB medidos iguales a los planificados salvo una fracción de por mil por el apuntamiento y `cuadra: true` en el
+  informe; con más horas, más contactos. Tarda ≈ 1 min por contacto.
+  Por qué importa: es la prueba de humo de punta a punta (plan → pases reales → lazo → datos) que se puede lanzar en
+  minutos; la versión de 24 h, cuatro estaciones y OD es m1-dia-operaciones.
+  Validez: carga útil hipotética en banda X, sin atmósfera en el enlace; sin OD (n_od = 0: la OD necesita varios pases por
+  satélite); fecha de inicio fija: el mismo informe sale idéntico. Cada contacto lanza su propio ros2 launch con un
+  ROS_DOMAIN_ID del pool 200-229; con una concurrencia de 1 y la máquina cargada puede tardar varios minutos por contacto.
+comando: [python3, scripts/mision.py, --n-od, "0", --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: informe.json
+metricas: metrics.json
+artefactos:
+  - {ruta: informe.json, contrato: mision_informe}
+  - {ruta: plan.json, contrato: plan}
+  - {ruta: metrics.json, contrato: mision_metricas}
+recursos: pesado
+timeout_s: 3600
+args:
+  sats: "ISS"
+  estaciones: cdmx
+  inicio: "2026-10-02T12:00:00"
+  horas: 3
+  sdr: ninguno
+  gemelos: ninguno
+  concurrencia: 1
+  metodo: auto
+params_schema:
+  sats: {type: enum, options: ["ISS", "NOAA 19", "METEOR-M2 3", "ISS,NOAA 19"], label: "Satélites"}
+  estaciones: {type: enum, options: [cdmx, tromso, ecuador, madrid], label: "Estación"}
+  horas: {type: number, min: 1, max: 12, label: "Horizonte (h)"}
+  metodo: {type: enum, options: [auto, bb, milp], label: "Óptimo (auto = propio y, si no prueba, HiGHS)"}

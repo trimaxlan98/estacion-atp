@@ -1,0 +1,13 @@
+id: render-falso
+title: Render de prueba (video falso con miniatura)
+description: Escribe visor.mp4 + miniatura.jpg + media.json; sin pantalla, clase ligero.
+requiere: {cualquiera: true}
+comando: [python3, "{root}/station/backend/tests/fixtures/render_falso.py", "{run_dir}", "{salida}", "{pantalla}", "{job_id}"]
+estilo_args: cli
+recursos: ligero
+pantalla: false
+duracion_estimada_s: 5
+args: {modo: ok, pasos: 3}
+params_schema:
+  modo: {type: enum, options: [ok, sinmedia, sha_malo, sinminiatura, falla, dormir, senal, senal_una_vez], label: "Modo"}
+  pasos: {type: integer, min: 1, max: 20, label: "Pasos"}

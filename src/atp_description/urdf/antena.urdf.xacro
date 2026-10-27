@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!-- Montura Az/El de la Estacion ATP con plato de 3 m, para ros2_control.
+
+  xacro antena.urdf.xacro hw:=sim        (plugin atp_control/AtpMountSystem, backend sim)
+  xacro antena.urdf.xacro hw:=serial     (idem, backend serial: microcontrolador o puerto falso)
+  xacro antena.urdf.xacro hw:=gz         (gz_ros2_control/GazeboSimSystem, Gazebo Harmonic)
+  xacro antena.urdf.xacro hw:=mock       (mock_components/GenericSystem, solo para depurar)
+
+El UNICO cambio entre simular y mover hardware es la etiqueta <hardware> de
+<ros2_control> (ver antena.ros2_control.xacro): la geometria, las
+inercias, los limites y los controladores son los mismos.
+
+Planta equivalente (la de planta.py / docs/CONTROL.md): J = 2 kg m^2 por eje
+y b = 0.5 N m s/rad. La montura esta equilibrada (el centro de masa de cada
+cuerpo movil cae sobre sus ejes), asi que la gravedad no carga a los motores
+(el desbalance de elevacion es un parametro aparte, unbalance_nm).
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="antena_atp">
+
+  <xacro:arg name="hw" default="sim"/>
+  <xacro:arg name="az0" default="0.0"/>           <!-- posicion inicial, rad -->
+  <xacro:arg name="el0" default="0.5236"/>
+  <xacro:arg name="u_max" default="8.0"/>         <!-- tope de par, N m -->
+  <xacro:arg name="J" default="2.0"/>
+  <xacro:arg name="b" default="0.5"/>
+  <xacro:arg name="vel_max_deg_s" default="0.0"/> <!-- <=0: sin tope -->
+  <xacro:arg name="coulomb_nm" default="0.0"/>
+  <xacro:arg name="stribeck_nm" default="0.0"/>
+  <xacro:arg name="backlash_deg" default="0.0"/>
+  <xacro:arg name="unbalance_nm" default="0.0"/>
+  <xacro:arg name="encoder_bits" default="0"/>
+  <xacro:arg name="serial_port" default="fake"/>  <!-- fake o /dev/ttyUSB0 -->
+  <xacro:arg name="serial_baud" default="921600"/>
+  <xacro:arg name="controllers_file" default=""/> <!-- solo hw:=gz -->
+  <xacro:arg name="tema" default="base"/>        <!-- base | code (paleta Co.De Aerospace, solo color) -->
+
+  <xacro:include filename="$(find atp_description)/urdf/antena.ros2_control.xacro"/>
+
+  <xacro:property name="tema" value="$(arg tema)"/>
+  <xacro:if value="${tema == 'code'}">
+    <!-- paleta Co.De Aerospace (marca/paleta.json) en espacio LINEAL (Gazebo no aplica gamma):
+         plato = plata #F2F3F4, pedestal = tenue #8E99A6, alimentador = ambar #F59E0B -->
+    <material name="cian"><color rgba="0.888 0.896 0.905 1"/></material>
+    <material name="gris"><color rgba="0.271 0.318 0.381 1"/></material>
+    <material name="blanco"><color rgba="0.913 0.342 0.0033 1"/></material>
+  </xacro:if>
+  <xacro:unless value="${tema == 'code'}">
+    <material name="cian"><color rgba="0.13 0.83 0.93 1"/></material>
+    <material name="gris"><color rgba="0.35 0.40 0.45 1"/></material>
+    <material name="blanco"><color rgba="0.92 0.93 0.95 1"/></material>
+  </xacro:unless>
+
+  <!-- inercia esferica (ixx = iyy = izz = i): J no depende de la elevacion -->
+  <xacro:macro name="inercia_esf" params="m i">
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="${m}"/>
+      <inertia ixx="${i}" iyy="${i}" izz="${i}" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+  </xacro:macro>
+
+  <link name="world"/>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.5"/><mass value="400"/>
+      <inertia ixx="40" iyy="40" izz="30" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <geometry><mesh filename="package://atp_description/meshes/pedestal.stl"/></geometry>
+      <material name="gris"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.5"/>
+      <geometry><cylinder radius="0.4" length="1.0"/></geometry>
+    </collision>
+  </link>
+  <joint name="base_fijo" type="fixed">
+    <parent link="world"/><child link="base_link"/><origin xyz="0 0 0"/>
+  </joint>
+
+  <!-- Cuerpo de acimut: 0.01 kg m^2 sobre el eje Z; con el el_link (2.0) da J_az = 2.01 -->
+  <link name="az_link">
+    <inertial>
+      <origin xyz="0 0 0"/><mass value="30"/>
+      <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <geometry><mesh filename="package://atp_description/meshes/yugo.stl"/></geometry>
+      <material name="gris"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.15"/>
+      <geometry><box size="0.6 1.6 0.3"/></geometry>
+    </collision>
+  </link>
+  <joint name="az" type="continuous">
+    <parent link="base_link"/><child link="az_link"/>
+    <origin xyz="0 0 1.0"/><axis xyz="0 0 1"/>
+    <dynamics damping="$(arg b)" friction="0.0"/>
+    <limit effort="$(arg u_max)" velocity="3.0"/>
+  </joint>
+
+  <!-- Cuerpo de elevacion: el plato apunta a +X cuando el = 0; el eje es -Y.
+       Inercia esferica de 2.0 kg m^2: J_el = 2.0 y su aporte al eje de acimut
+       es 2.0 para cualquier elevacion. Centro de masa sobre el eje. -->
+  <link name="el_link">
+    <xacro:inercia_esf m="60" i="$(arg J)"/>
+    <visual>
+      <origin xyz="-0.1 0 0"/>
+      <geometry><mesh filename="package://atp_description/meshes/plato.stl"/></geometry>
+      <material name="cian"/>
+    </visual>
+    <visual>
+      <origin xyz="-0.1 0 0" rpy="0 1.5708 0"/>
+      <geometry><mesh filename="package://atp_description/meshes/alimentador.stl"/></geometry>
+      <material name="blanco"/>
+    </visual>
+    <collision>
+      <origin xyz="0.15 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="1.5" length="0.12"/></geometry>
+    </collision>
+  </link>
+  <joint name="el" type="revolute">
+    <parent link="az_link"/><child link="el_link"/>
+    <origin xyz="0 0 0.9"/><axis xyz="0 -1 0"/>
+    <dynamics damping="$(arg b)" friction="0.0"/>
+    <limit lower="0" upper="3.14159" effort="$(arg u_max)" velocity="3.0"/>
+  </joint>
+
+  <!-- punto de apuntamiento: delante del plato, para ver la linea de vista -->
+  <link name="boresight"/>
+  <joint name="boresight_joint" type="fixed">
+    <parent link="el_link"/><child link="boresight"/><origin xyz="1.55 0 0"/>
+  </joint>
+
+  <xacro:atp_ros2_control hw="$(arg hw)"/>
+</robot>

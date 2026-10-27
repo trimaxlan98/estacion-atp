@@ -1,0 +1,44 @@
+id: rover-lockstep-luna
+title: Rover lunar en lockstep ROS (navegador, dinámica y enlace Tierra-Luna) con verificación sin ROS
+level: R9
+kind: proceso
+description: >
+  Qué se mide: la cadena del rover (sim_clock a 0.1 s, rover_dinamica con la física de R1, rover_navegador con A* y
+  rover_enlace con el retardo de luz Tierra-Luna) corriendo como nodos ROS 2 en lockstep determinista (CONTRATO §8), sobre
+  terreno rocoso lunar. Con enlace «ninguno» el navegador va a bordo; con «retardo» el navegador está en la Tierra, ve el
+  estado con 1.3 s de retraso y sus órdenes tardan otros 1.3 s en llegar, todo en tiempo simulado. Al final repite la misma
+  escena sin ROS y escribe equivalencia.json con las huellas de telemetry.jsonl, metrics.json y mandos.jsonl.
+  Qué se espera: sin enlace, la corrida con y sin ROS da los mismos bytes que el lazo cerrado sin ROS de R4; con enlace, el
+  rover tarda unos 2.6 s en recibir su primera orden y la misma corrida sale idéntica entre ROS y sin ROS.
+  Limitación: es una prueba de la tubería y de su determinismo, no una cifra de misión; el enlace es el modelo de R7 con
+  supuestos sin validar, el navegador en Tierra es ingenuo (no compensa el retardo) y la física es la de R1 con parámetros
+  de suelo supuestos. Cada segundo simulado cuesta casi uno de pared.
+area: plataforma
+comando: [python3, scripts/rover_lockstep.py, --id, "{run_id}", --salida, "{runs_dir}", --dominio, "{domain}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: pesado
+timeout_s: 1800
+args:
+  planeta: luna
+  terreno: rocoso
+  semilla: 7
+  ruta: [[6, 0], [6, 5]]
+  duracion_s: 40
+  v_max: 0.5
+  navegacion: completa
+  enlace: ninguno
+  verificar: "si"
+  time_scale: 0
+params_schema:
+  semilla: {type: number, min: 0, max: 9999, label: "Semilla del terreno"}
+  duracion_s: {type: number, min: 10, max: 120, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}
+  navegacion: {type: enum, options: [basico, completa], label: "Navegación (rumbo proporcional o A* completa)"}
+  enlace: {type: enum, options: [ninguno, ideal, retardo], labels: {ninguno: "navegador a bordo", ideal: "Tierra sin retardo (un paso)", retardo: "Tierra con retardo de luz"}, label: "Enlace Tierra-rover"}
+  verificar: {type: enum, options: ["si", "no"], label: "Repetir sin ROS y comparar los bytes"}
+  time_scale: {type: enum, options: [0, 1, 2], labels: {0: "lo más rápido posible", 1: "tiempo real", 2: "el doble del tiempo real"}, label: "Ritmo del reloj simulado"}

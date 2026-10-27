@@ -1,0 +1,12 @@
+id: render-pantalla
+title: Render de prueba con pantalla (clase gazebo, contrato red)
+requiere: {contrato: red}
+comando: [python3, "{root}/station/backend/tests/fixtures/render_falso.py", "{run_dir}", "{salida}", "{pantalla}", "{job_id}"]
+estilo_args: cli
+recursos: gazebo
+pantalla: true
+duracion_estimada_s: 30
+args: {modo: ok, pasos: 2, acelerar: 30}
+params_schema:
+  modo: {type: enum, options: [ok, dormir, falla], label: "Modo"}
+  acelerar: {type: number, min: 1, max: 120, label: "Compresion de tiempo"}

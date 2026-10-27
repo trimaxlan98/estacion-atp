@@ -1,0 +1,44 @@
+id: m1-dia-operaciones
+title: Un día de operaciones de la red (plan, pases reales, autotrack, SDR y OD)
+level: M1
+kind: mision
+description: >
+  Qué se mide: la misión integrada de punta a punta, como la viviría el operador de
+  una red. El planificador (óptimo, DVB-S2) elige los contactos de 24 h de cuatro
+  estaciones y ocho satélites; CADA contacto asignado se ejecuta como una corrida en
+  lockstep con el pase real SGP4 de ese satélite (X: autotrack por conical scan; S:
+  program track; receptor SDR a nivel IQ en los contactos de calibración de las
+  bandas UHF/S). Con lo que registraron los tres primeros pases de cada satélite se
+  determina su órbita y los pases siguientes se vuelan con la órbita estimada en
+  lugar del TLE. Los GB se recalculan con el error de apuntamiento y el C/N0
+  MEDIDOS en cada corrida, y cada contacto con órbita estimada se compara con su
+  gemelo con TLE. El satélite verdadero difiere del TLE (el escenario de la OD).
+  Qué se espera: casi todos los contactos planificados ejecutados; los GB medidos
+  cerca de los planificados (la pérdida por apuntamiento es una fracción de
+  por mil con TLE de 0.5-1.5 días); la órbita estimada a decenas de metros contra
+  cientos de metros a km del TLE, y el error de efemérides ~50 veces menor.
+  Por qué importa: es la prueba de que las piezas validadas por separado funcionan
+  encadenadas. Validez: cargas útiles hipotéticas, verdad = escenario de
+  docs/OD.md (no datos reales), sin atmósfera en el enlace. Fecha fija: el mismo
+  informe sale idéntico. Con el máximo de concurrencia de la Estación y la máquina
+  cargada dura ~1-2 h: sube STATION_MAX_TIMEOUT si hace falta. Ver docs/MISION.md.
+launch: mision.py
+timeout_s: 3600
+args:
+  sats: "ISS,NOAA 15,NOAA 18,NOAA 19,NOAA 20,NOAA 21,METEOR-M2 3,METEOR-M2 4"
+  estaciones: cdmx,tromso,ecuador,madrid
+  inicio: "2026-10-02T12:00:00"
+  horas: 24
+  n_od: 3
+  n_min_od: 3
+  sdr: cal
+  gemelos: programa
+  concurrencia: 3
+  metodo: auto
+params_schema:
+  horas: {type: number, min: 1, max: 24, label: "Horizonte (h)"}
+  n_od: {type: integer, min: 0, max: 6, label: "Contactos de calibración por satélite (0 = sin OD)"}
+  n_min_od: {type: integer, min: 1, max: 6, label: "Pases de calibración para volar con la órbita estimada"}
+  sdr: {type: enum, options: [cal, todos, ninguno], label: "Receptor SDR (solo UHF/S)"}
+  gemelos: {type: enum, options: [programa, todos, ninguno], label: "Gemelos con TLE de los contactos con OD"}
+  concurrencia: {type: integer, min: 1, max: 6, label: "Corridas en paralelo"}

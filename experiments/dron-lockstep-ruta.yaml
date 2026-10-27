@@ -1,0 +1,35 @@
+id: dron-lockstep-ruta
+title: Dron en lockstep ROS (planta con controlador de vuelo y computadora de misión) con verificación sin ROS
+level: D5
+kind: proceso
+description: >
+  Qué se mide: la cadena del dron como nodos ROS 2 en lockstep determinista (CONTRATO §8): sim_clock a 0.02 s, dron_dinamica
+  (el dron con su controlador de vuelo, sensores y estimador a bordo) y dron_navegador (la computadora de misión que decide la
+  velocidad deseada). Ruta de tres metas con viento y ráfagas. Al final repite la misma escena sin ROS y escribe
+  equivalencia.json con las huellas de telemetry.jsonl, metrics.json y setpoints.jsonl.
+  Qué se espera: la corrida con y sin ROS da los mismos bytes, y con time_scale 0 y 2 también. Limitación: es una prueba de la
+  tubería y su determinismo, no una cifra de vuelo; la física y los parámetros son los de D1 a D4 (supuestos). Cada segundo
+  simulado cuesta menos de uno de pared.
+area: plataforma
+comando: [python3, scripts/dron_lockstep.py, --id, "{run_id}", --salida, "{runs_dir}", --dominio, "{domain}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: pesado
+timeout_s: 1800
+args:
+  cuerpo: tierra
+  semilla: 5
+  ruta: [[30, 0, 10], [30, 30, 10], [0, 0, 10]]
+  duracion_s: 90
+  viento: [2.0, 0.0, 0.0]
+  rafaga_sigma: 1.0
+  v_max: 5.0
+  verificar: "si"
+  time_scale: 0
+params_schema:
+  semilla: {type: number, min: 0, max: 9999, label: "Semilla (ráfagas)"}
+  rafaga_sigma: {type: number, min: 0, max: 5, label: "Ráfagas, σ (m/s)"}

@@ -1,0 +1,31 @@
+id: dron-viento-limite
+title: Cuadrirrotor en el límite de viento sostenible
+level: D2
+kind: proceso
+description: >
+  Qué se mide: mantener posición a 10 m con viento constante de 24 m/s, justo sobre el límite que fija la inclinación máxima de
+  35 grados (v = 23.7 m/s por la fórmula cerrada). Se mide la deriva y la inclinación.
+  Qué se espera: no sostiene la posición y deriva a favor del viento. Limitación: arrastre cuadrático con CdA supuesto; sin
+  arrastre de rotor ni giro de la nariz al viento.
+area: plataforma
+comando: [python3, scripts/dron.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: dron_telemetria}
+  - {ruta: metrics.json, contrato: dron_metricas}
+recursos: ligero
+timeout_s: 600
+args:
+  cuerpo: tierra
+  semilla: 4
+  ruta: [[0, 0, 10]]
+  duracion_s: 30
+  parar_al_llegar: false
+  viento: [24.0, 0.0, 0.0]
+  v_max: 5.0
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  semilla: {type: number, min: 0, max: 100000, label: "Semilla (ráfagas)"}
+  v_max: {type: number, min: 1, max: 12, label: "Velocidad máxima (m/s)"}

@@ -1,0 +1,32 @@
+id: rover-enlace-luna
+title: Enlace del rover en la Luna con un relé en órbita polar baja
+level: R7
+kind: proceso
+description: >
+  Qué se mide: durante unos días, cuántos pases ve un rover en el polo sur lunar de un relé en órbita polar circular de
+  100 km, cuántos megabits al día entran en banda S y cuánta latencia tiene la telemetría almacenada (DTN) hasta la Tierra.
+  Qué se espera: muchos pases cortos (el polo se ve en cada vuelta). Limitación: banda S, potencia, antenas y tasa del relé a
+  la Tierra son supuestos; no hay pruebas contra un relé lunar real; el relé en halo (NRHO) aquí es una elipse de dos cuerpos.
+area: rf
+comando: [python3, scripts/enlace_rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+recursos: ligero
+timeout_s: 600
+args:
+  planeta: luna
+  rele: polar_100km
+  lat_deg: -89.5
+  lon_deg: 0.0
+  terreno: llano
+  antena: omni_helice
+  dias: 3
+  fecha: "2026-10-07"
+params_schema:
+  lat_deg: {type: number, min: -90, max: 90, label: "Latitud del rover (deg)"}
+  lon_deg: {type: number, min: -180, max: 360, label: "Longitud del rover (deg)"}
+  antena: {type: enum, options: [omni_lineal, omni_helice, direccional], label: "Antena UHF del rover"}
+  terreno: {type: enum, options: [llano, rocoso, crater], label: "Terreno (horizonte local)"}
+  dias: {type: number, min: 1, max: 30, label: "Días simulados"}
+  rele: {type: enum, options: [polar_100km, nrho_kepler], label: "Relé orbital"}

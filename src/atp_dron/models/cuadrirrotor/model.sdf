@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<!-- Cuadrirrotor en X para Gazebo (gz-sim, SDF 1.9). Parametros copiados de src/atp_dron/atp_dron/dron.py PARAMS: masa, inercias
+     y posicion de los rotores. Lo comprueba scripts/comprobar_modelo_dron.py; si cambian los parametros, regenerar.
+     NO VERIFICADO EN GAZEBO: en este entorno no hay gz-harmonic (sin acceso al repositorio de OSRF). -->
+<sdf version="1.9">
+  <model name="cuadrirrotor">
+    <link name="base_link">
+      <inertial>
+        <mass>1.5</mass>
+        <inertia><ixx>0.0123</ixx><iyy>0.0123</iyy><izz>0.0224</izz></inertia>
+      </inertial>
+      <visual name="cuerpo"><geometry><box><size>0.2 0.2 0.05</size></box></geometry>
+        <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material></visual>
+    </link>
+    <link name="rotor_0">
+      <pose relative_to="base_link">0.162635 -0.162635 0.02 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>2e-5</izz></inertia></inertial>
+      <visual name="disco"><geometry><cylinder><radius>0.127</radius><length>0.005</length></cylinder></geometry>
+        <material><ambient>0.2 0.6 1 0.4</ambient><diffuse>0.2 0.6 1 0.4</diffuse></material></visual>
+    </link>
+    <joint name="motor_0" type="revolute">
+      <parent>base_link</parent><child>rotor_0</child><axis><xyz>0 0 1</xyz></axis>
+    </joint>
+    <link name="rotor_1">
+      <pose relative_to="base_link">0.162635 0.162635 0.02 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>2e-5</izz></inertia></inertial>
+      <visual name="disco"><geometry><cylinder><radius>0.127</radius><length>0.005</length></cylinder></geometry>
+        <material><ambient>0.2 0.6 1 0.4</ambient><diffuse>0.2 0.6 1 0.4</diffuse></material></visual>
+    </link>
+    <joint name="motor_1" type="revolute">
+      <parent>base_link</parent><child>rotor_1</child><axis><xyz>0 0 1</xyz></axis>
+    </joint>
+    <link name="rotor_2">
+      <pose relative_to="base_link">-0.162635 0.162635 0.02 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>2e-5</izz></inertia></inertial>
+      <visual name="disco"><geometry><cylinder><radius>0.127</radius><length>0.005</length></cylinder></geometry>
+        <material><ambient>0.2 0.6 1 0.4</ambient><diffuse>0.2 0.6 1 0.4</diffuse></material></visual>
+    </link>
+    <joint name="motor_2" type="revolute">
+      <parent>base_link</parent><child>rotor_2</child><axis><xyz>0 0 1</xyz></axis>
+    </joint>
+    <link name="rotor_3">
+      <pose relative_to="base_link">-0.162635 -0.162635 0.02 0 0 0</pose>
+      <inertial><mass>0.02</mass><inertia><ixx>1e-5</ixx><iyy>1e-5</iyy><izz>2e-5</izz></inertia></inertial>
+      <visual name="disco"><geometry><cylinder><radius>0.127</radius><length>0.005</length></cylinder></geometry>
+        <material><ambient>0.2 0.6 1 0.4</ambient><diffuse>0.2 0.6 1 0.4</diffuse></material></visual>
+    </link>
+    <joint name="motor_3" type="revolute">
+      <parent>base_link</parent><child>rotor_3</child><axis><xyz>0 0 1</xyz></axis>
+    </joint>
+  </model>
+</sdf>

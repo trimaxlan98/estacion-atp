@@ -1,0 +1,74 @@
+# controller_manager de la montura ATP. El mismo archivo vale para el hardware
+# simulado (AtpMountSystem sim), el MCU (serial) y Gazebo (gz_ros2_control).
+#
+# Los lanzadores le superponen parametros del usuario (ley, estimador, planta...)
+# y fijan update_rate segun el modo; aqui estan los valores base.
+controller_manager:
+  ros__parameters:
+    update_rate: 20            # Hz del lazo; en Gazebo se sube (ver atp_gz.launch.py)
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # Controlador propio: sigue /atp/reference con el PID o el LQR de la casa
+    atp_tracking_controller:
+      type: atp_control/AtpTrackingController
+
+    # Alternativa estandar (modo posicion del hardware): no se activa por defecto
+    joint_trajectory_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # Para identificar la planta (atp_identify.launch.py): par directo por /effort_controller/commands
+    effort_controller:
+      type: effort_controllers/JointGroupEffortController
+
+joint_state_broadcaster:
+  ros__parameters:
+    joints: [az, el]
+    interfaces: [position, velocity, effort]
+
+atp_tracking_controller:
+  ros__parameters:
+    joints: [az, el]
+    reference_topic: /atp/reference
+    torque_topic: /atp/torque
+    law: pid                   # pid | lqr
+    estimator: none            # none | kalman
+    rate_hz: 20.0              # la ley corre a 20 Hz aunque el controller_manager vaya mas rapido
+    u_max: 8.0
+    extrapolate_ref: true      # si el sello de la referencia no coincide, extrapola (Gazebo)
+    sync_publish: false        # true en lockstep (lo fija el lanzador)
+    trace_file: ''             # diagnostico: CSV de cada tick de la ley (vacio = apagado)
+    J: 2.0
+    b: 0.5
+    # PID (pid_controller.py)
+    kp: 25.0
+    ki: 2.0
+    kd: 8.0
+    tau_derivada: 0.08
+    antiwindup: true
+    # LQR (control.LQR_DEFECTO)
+    q_theta: 10000.0
+    q_omega: 1.0
+    q_int: 1000.0
+    r_u: 1.0
+    feedforward: true
+    use_dhat: true
+    # lo que el filtro sabe del sensor
+    enc_sigma_deg: 0.0
+    enc_bits: 0
+    kf_q_acc: 0.0001
+    kf_q_par: 0.01
+
+joint_trajectory_controller:
+  ros__parameters:
+    joints: [az, el]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    allow_nonzero_velocity_at_trajectory_end: true
+    state_publish_rate: 20.0
+    action_monitor_rate: 20.0
+
+effort_controller:
+  ros__parameters:
+    joints: [az, el]

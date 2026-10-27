@@ -1,0 +1,39 @@
+id: n1-rampa
+title: Lazo de un eje sobre rampa de acimut
+level: N1
+kind: loop
+description: >
+  Qué se mide: la respuesta del lazo PID (kp, ki, kd con derivada filtrada y
+  anti-windup) sobre una montura de inercia J = 2 kg·m² y fricción viscosa
+  b = 0.5 N·m·s/rad, cuando el acimut debe seguir una rampa de velocidad
+  constante (por defecto 5 °/s durante 20 s) con la elevación fija en 30°.
+  No hay satélite real: es el experimento más simple de la escalera y sirve
+  para ver el lazo desnudo.
+  Qué se espera: un transitorio al arrancar (la rampa empieza con la montura
+  alineada pero con velocidad cero) y luego un error que el término integral
+  lleva hacia cero. Como la planta ya integra la velocidad, el integrador la
+  vuelve de tipo 2 y la rampa se sigue sin error en régimen. El máximo del
+  error está en el transitorio; el veredicto sobre 0.1° depende de cuánto
+  pese ese transitorio en el RMS. Subir la velocidad de la rampa o bajar kp lo
+  empeora de forma predecible.
+  Por qué importa: si el lazo no sigue una rampa limpia en un solo eje, nada
+  de lo que se construya encima (pase LEO, keyhole, enlace) se puede
+  interpretar. Es la línea base de calibración de los experimentos N2 a N4.
+  Limitación: el enlace de esta corrida no tiene significado físico (la
+  distancia es un valor fijo de 1000 km); solo importa el error de acimut.
+launch: atp_loop.launch.py
+args:
+  profile: ramp
+  ramp_deg_s: 5
+  ramp_duration: 20
+  kp: 25
+  kd: 8
+  noise_deg: 0
+  time_scale: 0
+params_schema:
+  ramp_deg_s: {type: number, min: 0.5, max: 30, label: "Velocidad de la rampa (°/s)"}
+  ramp_duration: {type: number, min: 5, max: 60, label: "Duración de la rampa (s)"}
+  kp: {type: number, min: 5, max: 60, label: "Ganancia proporcional kp"}
+  kd: {type: number, min: 1, max: 20, label: "Ganancia derivativa kd"}
+  noise_deg: {type: number, min: 0, max: 0.1, label: "Ruido del encoder (°, 1 sigma)"}
+  time_scale: {type: number, min: 0, max: 20, label: "Ritmo del reloj (x; 0 = máximo, mismo resultado)"}

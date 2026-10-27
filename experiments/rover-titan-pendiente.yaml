@@ -1,0 +1,32 @@
+id: rover-titan-pendiente
+title: Rover en Titán subiendo una pendiente
+level: R1
+kind: proceso
+description: >
+  Qué se mide: el rover sube en simulación una pendiente de 12 grados con la gravedad de Titán (1.352 m/s2), una
+  atmósfera densa (5.4 kg/m3, resistencia aerodinámica no despreciable) y un suelo blando supuesto (no hay
+  terramecánica medida de Titán; el suelo sale de una lectura cualitativa de Huygens). Se miden la distancia
+  recorrida, el deslizamiento medio y la energía.
+  Qué se espera: la subida es posible pero con deslizamiento alto; el resultado depende mucho del suelo supuesto.
+  Limitación: valores de suelo SUPUESTOS; no usar la cifra como predicción.
+area: plataforma
+comando: [python3, scripts/rover.py, --id, "{run_id}", --salida, "{runs_dir}"]
+estilo_args: cli
+hecho_cuando: metrics.json
+metricas: metrics.json
+artefactos:
+  - {ruta: telemetry.jsonl, contrato: rover_telemetria}
+  - {ruta: metrics.json, contrato: rover_metricas}
+recursos: ligero
+timeout_s: 900
+args:
+  planeta: titan
+  terreno: pendiente
+  semilla: 1
+  terreno_params: {angulo_deg: 12}
+  ruta: [[10, 0]]
+  duracion_s: 90
+  v_max: 0.4
+params_schema:
+  duracion_s: {type: number, min: 10, max: 300, label: "Duración (s de tiempo simulado)"}
+  v_max: {type: number, min: 0.1, max: 1.0, label: "Velocidad de crucero (m/s)"}
